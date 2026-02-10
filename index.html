@@ -307,6 +307,94 @@ a,button{touch-action:manipulation}
   .filter-btn:active{transform:scale(0.95)}
   .spot-link:active{background:var(--forest);color:white}
 }
+  
+/* ===== BINGOセクション用CSS ===== */
+.mission-dashboard {
+  background: var(--forest-deep);
+  color: white;
+  border-radius: 24px;
+  padding: 2rem 1rem;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  text-align: center;
+}
+/* 背景の装飾パターン */
+.mission-dashboard::before {
+  content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  background-image: radial-gradient(rgba(255,255,255,0.1) 1px, transparent 1px);
+  background-size: 20px 20px; opacity: 0.3; pointer-events: none;
+}
+
+/* 進捗サークル */
+.progress-ring-container {
+  position: relative; width: 120px; height: 120px; margin: 0 auto 2rem;
+  display: flex; align-items: center; justify-content: center;
+}
+.progress-ring {
+  width: 100%; height: 100%; border-radius: 50%;
+  background: conic-gradient(var(--gold) var(--deg, 0deg), rgba(255,255,255,0.1) 0deg);
+  position: absolute; transition: --deg 1s ease-out;
+  box-shadow: 0 0 20px rgba(245, 197, 24, 0.2);
+}
+.progress-inner {
+  width: 104px; height: 104px; background: var(--forest-deep); border-radius: 50%;
+  position: absolute; z-index: 2; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+}
+.pg-val { font-family: "M PLUS Rounded 1c"; font-size: 1.8rem; font-weight: 800; line-height: 1; }
+.pg-label { font-size: 0.6rem; color: var(--gold); letter-spacing: 0.1em; margin-top: 0.2rem; }
+
+/* 4x4 グリッド */
+.bingo-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;
+  max-width: 500px; margin: 0 auto; perspective: 1000px;
+}
+.bingo-cell {
+  background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px; aspect-ratio: 1/1; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  position: relative; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  user-select: none; overflow: hidden;
+}
+.bingo-cell:active { transform: scale(0.92); }
+
+/* アイコンとテキスト */
+.b-icon { font-size: 1.4rem; filter: grayscale(100%) opacity(0.7); transition: 0.3s; margin-bottom: 2px; }
+.b-text { font-size: 0.6rem; line-height: 1.2; opacity: 0.7; font-weight: 500; }
+
+/* 達成時のスタイル */
+.bingo-cell.active {
+  background: var(--snow); border-color: var(--gold);
+  color: var(--forest-deep); box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  transform: translateY(-2px);
+}
+.bingo-cell.active .b-icon { filter: grayscale(0%); transform: scale(1.1); }
+.bingo-cell.active .b-text { opacity: 1; font-weight: 700; }
+
+/* スタンプアニメーション */
+.stamp-mark {
+  position: absolute; top: 50%; left: 50%;
+  width: 85%; height: 85%; border: 3px solid var(--volcanic); border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  transform: translate(-50%, -50%) rotate(-15deg) scale(0); opacity: 0;
+  transition: 0.4s cubic-bezier(0.6, -0.28, 0.735, 0.045); pointer-events: none;
+}
+.stamp-inner {
+  color: var(--volcanic); font-family: "Kaisei Decol"; font-weight: 700;
+  font-size: 0.6rem; white-space: nowrap;
+}
+.bingo-cell.active .stamp-mark { transform: translate(-50%, -50%) rotate(-15deg) scale(1); opacity: 0.8; }
+
+/* スマホ調整 */
+@media (max-width: 400px) {
+  .bingo-grid { gap: 4px; }
+  .b-icon { font-size: 1.1rem; }
+  .b-text { font-size: 0.5rem; transform: scale(0.9); }
+  .progress-ring-container { width: 100px; height: 100px; margin-bottom: 1.5rem; }
+  .progress-inner { width: 86px; height: 86px; }
+  .pg-val { font-size: 1.4rem; }
+}
 </style></head><body>
 <!-- HERO -->
 <section class="hero">
@@ -543,7 +631,95 @@ a,button{touch-action:manipulation}
     <div class="tl-item"><div class="tl-time">18:25→21:15</div><div class="tl-title">✈ 新千歳 → 福岡</div><div class="tl-desc">ありがとう北海道。また来る。</div></div>
   </div>
 </section><div class="mountain-divider"></div>
+<!-- MISSION -->
+<section class="mission-section" id="mission">
+  <div class="section-header">
+    <h2>MISSION BINGO</h2>
+    <p>旅のクエスト全16種。目指せコンプリート。</p>
+  </div>
+  
+  <div class="mission-dashboard">
+    <div class="progress-ring-container">
+      <div class="progress-ring" id="pgRing" style="--deg: 0deg;"></div>
+      <div class="progress-inner">
+        <span class="pg-val" id="pgText">0%</span>
+        <span class="pg-label">COMPLETE</span>
+      </div>
+    </div>
 
+    <div class="bingo-grid" id="bingoGrid">
+      <div class="bingo-cell" onclick="toggleBingo(0)">
+        <div class="b-icon">🚉</div><span class="b-text">細岡駅<br>聖地巡礼</span>
+        <div class="stamp-mark"><div class="stamp-inner">COMPLETE</div></div>
+      </div>
+      <div class="bingo-cell" onclick="toggleBingo(1)">
+        <div class="b-icon">🚩</div><span class="b-text">宗谷岬<br>最北端</span>
+        <div class="stamp-mark"><div class="stamp-inner">COMPLETE</div></div>
+      </div>
+      <div class="bingo-cell" onclick="toggleBingo(2)">
+        <div class="b-icon">🌊</div><span class="b-text">礼文島<br>ブルー</span>
+        <div class="stamp-mark"><div class="stamp-inner">COMPLETE</div></div>
+      </div>
+      <div class="bingo-cell" onclick="toggleBingo(3)">
+        <div class="b-icon">🍱</div><span class="b-text">ウニ丼<br>完食</span>
+        <div class="stamp-mark"><div class="stamp-inner">COMPLETE</div></div>
+      </div>
+      <div class="bingo-cell" onclick="toggleBingo(4)">
+        <div class="b-icon">🏪</div><span class="b-text">ホット<br>シェフ</span>
+        <div class="stamp-mark"><div class="stamp-inner">COMPLETE</div></div>
+      </div>
+      <div class="bingo-cell" onclick="toggleBingo(5)">
+        <div class="b-icon">🦌</div><span class="b-text">エゾシカ<br>発見</span>
+        <div class="stamp-mark"><div class="stamp-inner">COMPLETE</div></div>
+      </div>
+      <div class="bingo-cell" onclick="toggleBingo(6)">
+        <div class="b-icon">🏔</div><span class="b-text">利尻富士<br>撮影</span>
+        <div class="stamp-mark"><div class="stamp-inner">COMPLETE</div></div>
+      </div>
+      <div class="bingo-cell" onclick="toggleBingo(7)">
+        <div class="b-icon">🥩</div><span class="b-text">ジンギ<br>スカン</span>
+        <div class="stamp-mark"><div class="stamp-inner">COMPLETE</div></div>
+      </div>
+      <div class="bingo-cell" onclick="toggleBingo(8)">
+        <div class="b-icon">♨</div><span class="b-text">絶景<br>露天風呂</span>
+        <div class="stamp-mark"><div class="stamp-inner">COMPLETE</div></div>
+      </div>
+      <div class="bingo-cell" onclick="toggleBingo(9)">
+        <div class="b-icon">🍦</div><span class="b-text">ソフト<br>クリーム</span>
+        <div class="stamp-mark"><div class="stamp-inner">COMPLETE</div></div>
+      </div>
+      <div class="bingo-cell" onclick="toggleBingo(10)">
+        <div class="b-icon">🚗</div><span class="b-text">1,000km<br>走破</span>
+        <div class="stamp-mark"><div class="stamp-inner">COMPLETE</div></div>
+      </div>
+      <div class="bingo-cell" onclick="toggleBingo(11)">
+        <div class="b-icon">🔰</div><span class="b-text">無事故<br>無違反</span>
+        <div class="stamp-mark"><div class="stamp-inner">COMPLETE</div></div>
+      </div>
+      <div class="bingo-cell" onclick="toggleBingo(12)">
+        <div class="b-icon">🍺</div><span class="b-text">サッポロ<br>クラシック</span>
+        <div class="stamp-mark"><div class="stamp-inner">COMPLETE</div></div>
+      </div>
+      <div class="bingo-cell" onclick="toggleBingo(13)">
+        <div class="b-icon">🦊</div><span class="b-text">キタキツネ<br>遭遇</span>
+        <div class="stamp-mark"><div class="stamp-inner">COMPLETE</div></div>
+      </div>
+      <div class="bingo-cell" onclick="toggleBingo(14)">
+        <div class="b-icon">🐚</div><span class="b-text">白い道<br>(宗谷)</span>
+        <div class="stamp-mark"><div class="stamp-inner">COMPLETE</div></div>
+      </div>
+      <div class="bingo-cell" onclick="toggleBingo(15)">
+        <div class="b-icon">🕺</div><span class="b-text">ジャンプ<br>写真</span>
+        <div class="stamp-mark"><div class="stamp-inner">COMPLETE</div></div>
+      </div>
+    </div>
+    
+    <div style="margin-top:1.5rem;">
+      <button onclick="resetBingo()" style="background:transparent; border:none; color:rgba(255,255,255,0.4); font-size:0.7rem; text-decoration:underline; cursor:pointer;">RESET PROGRESS</button>
+    </div>
+  </div>
+</section>
+  
 <!-- WEATHER -->
 <section class="weather-section" id="weather">
   <div class="section-header"><h2>4月下旬の天気</h2><p>北海道の4月 ≈ 東京の3月上旬。夜は0〜5°C。</p></div>
@@ -665,6 +841,67 @@ filterBtns.forEach(btn=>{btn.addEventListener("click",()=>{
   });
 })});
 
+// 最高のBINGOロジック (4x4)
+const BINGO_KEY = "hokkaido_bingo_v16"; // キー名を変更してリセット
+let bingoState = JSON.parse(localStorage.getItem(BINGO_KEY) || Array(16).fill(false).map(JSON.stringify)); // 初期化
+
+function updateBingoUI() {
+  const cells = document.querySelectorAll('.bingo-cell');
+  let count = 0;
+  
+  bingoState.forEach((state, i) => {
+    // true/falseの判定を確実に
+    const isDone = (state === true || state === "true");
+    
+    if (isDone) {
+      cells[i].classList.add('active');
+      count++;
+    } else {
+      cells[i].classList.remove('active');
+    }
+  });
+
+  // 進捗円グラフの更新
+  const pct = Math.round((count / 16) * 100);
+  const deg = (pct / 100) * 360;
+  
+  document.getElementById('pgText').textContent = pct + "%";
+  document.getElementById('pgRing').style.setProperty('--deg', deg + 'deg');
+  
+  // 色の変化（0%は透明、進むとGold）
+  if(pct > 0) {
+    document.getElementById('pgRing').style.background = `conic-gradient(var(--gold) var(--deg), rgba(255,255,255,0.1) 0deg)`;
+  }
+}
+
+function toggleBingo(index) {
+  // 状態を反転
+  const currentState = (bingoState[index] === true || bingoState[index] === "true");
+  bingoState[index] = !currentState;
+  
+  localStorage.setItem(BINGO_KEY, JSON.stringify(bingoState));
+  
+  // タップ時のフィードバック
+  const cell = document.querySelectorAll('.bingo-cell')[index];
+  if(!currentState) { //達成時のみアニメーション
+    cell.style.transform = "scale(0.9)";
+    setTimeout(()=> cell.style.transform = "", 150);
+  }
+  
+  updateBingoUI();
+}
+
+function resetBingo() {
+  if(confirm("ミッションの進捗をリセットしますか？")) {
+    bingoState = Array(16).fill(false);
+    localStorage.setItem(BINGO_KEY, JSON.stringify(bingoState));
+    updateBingoUI();
+  }
+}
+
+// 初期化実行
+updateBingoUI();
+  
 // Checklist
 const SK="hokkaido_cl";let ck={};
 try{ck=JSON.parse(localStorage.getItem(SK)||"{}")}catch(e){}

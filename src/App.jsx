@@ -866,8 +866,7 @@ export default function App() {
         <div style={{ fontSize: 10, letterSpacing: 4, color: "#a8d8ea", marginBottom: 14, animation: "slideUp .8s .2s both" }}>2025.04.24 — 04.30</div>
         <div style={{ fontFamily: "'Kaisei Decol',serif", fontSize: 44, fontWeight: 700, color: "#fff", lineHeight: 1.1, textShadow: "0 4px 24px rgba(0,0,0,.3)", animation: "slideUp .8s .4s both" }}>北の大地</div>
         <div style={{ fontFamily: "'Kaisei Decol',serif", fontSize: 14, color: "#a8d8ea", marginTop: 6, animation: "slideUp .8s .6s both" }}>歩く・走る・食う — 6泊7日</div>
-        <div style={{ display: "flex", gap: 8, justifyContent: "center", marginTop: 22, flexWrap: "wrap", animation: "slideUp .8s .8s both" }}>
-          {[
+        <div style={{ display: "inline-grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 22, animation: "slideUp .8s .8s both" }}>
             ["7", "DAYS"],
             ["1,540km", "DRIVE"],
             ["12.4km", "TREK"],
@@ -911,7 +910,7 @@ export default function App() {
 
       {tab === "day" && (
         <>
-          <div style={{ display: "inline-grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 22, animation: "slideUp .8s .8s both" }}>
+          <div style={{ display: "flex", gap: 6, padding: "12px 16px", overflowX: "auto", WebkitOverflowScrolling: "touch", position: "sticky", top: 44, zIndex: 99, background: "rgba(250,248,245,.95)", backdropFilter: "blur(12px)" }}>
             {DAYS.map((d, i) => (
               <button
                 key={d.id}
@@ -1024,6 +1023,7 @@ export default function App() {
     </div>
   );
 }
+
 
 
 

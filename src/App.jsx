@@ -867,6 +867,7 @@ export default function App() {
         <div style={{ fontFamily: "'Kaisei Decol',serif", fontSize: 44, fontWeight: 700, color: "#fff", lineHeight: 1.1, textShadow: "0 4px 24px rgba(0,0,0,.3)", animation: "slideUp .8s .4s both" }}>北の大地</div>
         <div style={{ fontFamily: "'Kaisei Decol',serif", fontSize: 14, color: "#a8d8ea", marginTop: 6, animation: "slideUp .8s .6s both" }}>歩く・走る・食う — 6泊7日</div>
         <div style={{ display: "inline-grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 22, animation: "slideUp .8s .8s both" }}>
+          {[
             ["7", "DAYS"],
             ["1,540km", "DRIVE"],
             ["12.4km", "TREK"],
@@ -1023,6 +1024,7 @@ export default function App() {
     </div>
   );
 }
+
 
 
 

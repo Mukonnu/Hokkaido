@@ -911,7 +911,7 @@ export default function App() {
 
       {tab === "day" && (
         <>
-          <div style={{ display: "flex", gap: 6, padding: "12px 16px", overflowX: "auto", WebkitOverflowScrolling: "touch", position: "sticky", top: 44, zIndex: 99, background: "rgba(250,248,245,.95)", backdropFilter: "blur(12px)" }}>
+          <div style={{ display: "inline-grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 22, animation: "slideUp .8s .8s both" }}>
             {DAYS.map((d, i) => (
               <button
                 key={d.id}
@@ -1024,5 +1024,6 @@ export default function App() {
     </div>
   );
 }
+
 
 

@@ -8,8 +8,10 @@ const DAYS = [
     subtitle: "前夜祭",
     km: 55,
     color: "#2a5a3e",
-    stay: "札幌ホテル",
+    stay: "プレミアホテル-CABIN-札幌",
     stayIcon: "🏨",
+    stayPrice: "¥16,026（1人¥8,013）",
+    stayNote: "札幌のど真ん中。ジンギスカンで煙まみれになった体を、セルフロウリュサウナと露天風呂で即リセットできる最高のスタート拠点。",
     mapQuery: "成吉思汗だるま本店+秀岳荘白石店+新千歳空港+すすきの",
     events: [
       {
@@ -55,8 +57,10 @@ const DAYS = [
     subtitle: "北上330km",
     km: 330,
     color: "#5ba4c9",
-    stay: "稚内ドーミーイン",
+    stay: "ドーミーイン稚内",
     stayIcon: "🏨",
+    stayPrice: "¥15,622（1人¥7,811）",
+    stayNote: "日本最北端のサウナとキンキンに冷えた水風呂で、320kmロングドライブの疲労を完全に消し飛ばす。",
     mapQuery: "札幌+小平町+天塩+稚内",
     events: [
       {
@@ -124,8 +128,10 @@ const DAYS = [
     subtitle: "★トレッキング",
     km: 0,
     color: "#9b7ec8",
-    stay: "稚内ドーミーイン（連泊）",
+    stay: "ドーミーイン稚内（連泊）",
     stayIcon: "🏨",
+    stayPrice: "¥16,560（1人¥8,280）",
+    stayNote: "最大の戦略。翌朝は荷物をすべて部屋に置いて「完全な手ぶら状態」で礼文島へ突撃。フェリー乗り場激近のベースキャンプ。",
     highlight:
       '最北の離島「礼文島」。12.4kmの岬めぐりコース。右に青い海、正面に利尻富士。花の浮島を歩く。',
     mapQuery: "稚内港+礼文島+スコトン岬+澄海岬",
@@ -175,8 +181,10 @@ const DAYS = [
     subtitle: "激走350km",
     km: 350,
     color: "#d4553a",
-    stay: "北見（車中泊 or ビジホ）",
-    stayIcon: "🚗",
+    stay: "コンフォートホテル北見",
+    stayIcon: "🏨",
+    stayPrice: "¥8,447（1人¥4,223）✨ バグレベルの安さ",
+    stayNote: "朝食無料！板門店から近く、特上サガリで煙まみれになってもすぐ帰って寝られる完璧な立地。",
     mapQuery: "宗谷岬+猿払+紋別+北見",
     events: [
       {
@@ -199,18 +207,32 @@ const DAYS = [
         price: "¥3,000〜4,500",
         hours: "18:00〜翌3:30（日祝定休）",
         tel: "0157-24-2626",
-        addr: "北見市北7条西4丁目8-1"
+        addr: "北見市北7条西4丁目8-1",
       },
     ],
     warnings: [
-      "板門店は日曜・祝日定休。4/27(月)は営業OK！予約は電話から可能",
+      "板門店は日曜・祝日定休。4/27(月)は営業OK！予約はAutoReserveから可能",
       "🦌 エゾシカ注意。夕暮れ時最危険。80km/h以下で",
       "紋別あたりで休憩+運転交代を",
     ],
     gourmet: [
-      { name: "四条ホルモン", note: "食べログ焼肉百名店。サガリ+豚ホルモン+生ダレ+ハッカハイボール。月曜定休なのでD4(月)は行けないが、北見焼肉の代名詞。次回北見に来たら必ず。", tags: ["焼肉", "月曜定休"], tel: "0157-23-1927" },
-      { name: "百萬力 北見本店", note: "食べログ北見焼肉1位(3.59)。精肉店直営の炉端スタイル。囲炉裏で炭火焼き。黒毛和牛ホルモン常時20種以上。ユッケもあり。予算¥6,000〜。オシャレ路線。", tags: ["焼肉", "1位"], tel: "0157-31-5544" },
-      { name: "出塚水産（紋別）", note: "手揚げかまぼこ。揚げたてアツアツでドライブのおやつに。", tags: ["おやつ"] }
+      {
+        name: "四条ホルモン",
+        note: "食べログ焼肉百名店。サガリ+豚ホルモン+生ダレ+ハッカハイボール。月曜定休なのでD4(月)は行けないが、北見焼肉の代名詞。次回北見に来たら必ず。",
+        tags: ["焼肉", "月曜定休"],
+        tel: "0157-23-1927",
+      },
+      {
+        name: "百萬力 北見本店",
+        note: "食べログ北見焼肉1位(3.59)。精肉店直営の炉端スタイル。囲炉裏で炭火焼き。黒毛和牛ホルモン常時20種以上。ユッケもあり。予算¥6,000〜。オシャレ路線。",
+        tags: ["焼肉", "1位"],
+        tel: "0157-31-5544",
+      },
+      {
+        name: "出塚水産（紋別）",
+        note: "手揚げかまぼこ。揚げたてアツアツでドライブのおやつに。",
+        tags: ["おやつ"],
+      },
     ],
   },
   {
@@ -220,8 +242,10 @@ const DAYS = [
     subtitle: "★世界遺産 390km",
     km: 390,
     color: "#1a3a2a",
-    stay: "釧路ホテル",
+    stay: "ドーミーインPREMIUM釧路",
     stayIcon: "🏨",
+    stayPrice: "¥15,621（1人¥7,810）",
+    stayNote: "最上階の天然温泉「幣舞の湯」とサウナで、翌日のバイクツーリングに向けてフィジカルを整える。",
     highlight: "世界遺産制覇へ。知床の原始の自然を踏み、神の子池のコバルトブルーに出会い、幣舞橋の夕日で締めくくる。",
     mapQuery: "北見+オシンコシンの滝+知床五湖+神の子池+摩周湖+釧路",
     events: [
@@ -279,9 +303,11 @@ const DAYS = [
     subtitle: "★聖地巡礼と豚丼",
     km: 250,
     color: "#8b6f47",
-    stay: "十勝川温泉",
-    stayIcon: "♨",
-    highlight: "旅のクライマックス。釧路湿原をバイクで駆け抜け、帯広の極上豚丼を経て、美人の湯・十勝川温泉で癒やされる。",
+    stay: "プレミアホテル-CABIN-帯広",
+    stayIcon: "🏨",
+    stayPrice: "¥15,517（1人¥7,758）",
+    stayNote: "世界的に珍しいモール温泉（美人の湯）で凍えた体を芯から溶かす。帯広駅前で翌朝の六花亭・ぱんちょうに歩いて行ける。",
+    highlight: "旅のクライマックス。釧路湿原をバイクで駆け抜け、帯広の極上豚丼を経て、美人の湯で癒やされる。",
     mapQuery: "釧路+細岡駅+塘路湖+鶴居村+帯広+十勝川温泉",
     events: [
       {
@@ -618,21 +644,26 @@ function DayView({ day }) {
         <Anim>
           <div
             style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 10,
               background: "linear-gradient(135deg,#9b7ec810,#faf8f5)",
               border: "1px solid rgba(155,126,200,.15)",
               borderRadius: 10,
-              padding: "8px 12px",
+              padding: "10px 12px",
               marginBottom: 10,
             }}
           >
-            <span style={{ fontSize: 20 }}>{day.stayIcon}</span>
-            <div>
-              <div style={{ fontSize: 10, color: "#8a7f72", fontWeight: 500 }}>この日の宿泊</div>
-              <div style={{ fontSize: 13, fontWeight: 700, color: "#1a3a2a" }}>{day.stay}</div>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <span style={{ fontSize: 20 }}>{day.stayIcon}</span>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 10, color: "#8a7f72", fontWeight: 500 }}>この日の宿泊</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: "#1a3a2a" }}>{day.stay}</div>
+              </div>
+              {day.stayPrice && (
+                <div style={{ fontSize: 11, color: "#9b7ec8", fontWeight: 700, textAlign: "right", flexShrink: 0 }}>{day.stayPrice}</div>
+              )}
             </div>
+            {day.stayNote && (
+              <div style={{ fontSize: 11, color: "#5c5347", marginTop: 6, lineHeight: 1.6, paddingLeft: 30 }}>{day.stayNote}</div>
+            )}
           </div>
         </Anim>
       )}

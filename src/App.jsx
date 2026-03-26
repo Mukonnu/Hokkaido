@@ -16,6 +16,7 @@ const DAYS = [
     rentalCar: {
       company: "カースタレンタカー 新千歳空港店",
       tel: "0123-66-9153",
+      addr: "北海道千歳市上長都886-8",
       pickup: "4/24(金) 13:00",
       pickupNote: "ANA61便到着後",
       dropoff: "4/30(木) 16:00",
@@ -36,20 +37,6 @@ const DAYS = [
         date: "4/24(金)",
         note: "2名共通",
       },
-      returns: [
-        {
-          name: "細岡",
-          flight: "ANA1280",
-          route: "新千歳 → 福岡（FUK）",
-          departure: "18:20発",
-        },
-        {
-          name: "神原",
-          flight: "ANA578",
-          route: "新千歳 → UKB",
-          departure: "18:35発",
-        },
-      ],
     },
     events: [
       {
@@ -64,7 +51,7 @@ const DAYS = [
         type: "food",
         tags: ["パン屋"],
         optional: true,
-        desc: "北海道を代表する人気ベーカリーチェーン。道産小麦を使った手作りパンが充実。新千歳から札幌へ向かう途中に立ち寄れる。翌日以降の行動食・朝食ストックにも◎。",
+        desc: "北海道を代表する人気ベーカリーチェーン。道産小麦を使った手作りパンが充実。新千歳から札幌へ向かう途中に立ち寄れる。翌日以降の行動食・朝食ストックにも◎。\n\n📍「どんぐり 北広島店」などルート沿い店舗をMapsで確認。",
         hours: "店舗により異なる（7:00〜19:00頃）",
       },
       {
@@ -435,6 +422,12 @@ const DAYS = [
     stay: null,
     stayIcon: null,
     mapQuery: "帯広駅+新千歳空港温泉+新千歳空港",
+    flights: {
+      returns: [
+        { name: "細岡", flight: "ANA1280", route: "新千歳 → 福岡（FUK）", departure: "18:20発" },
+        { name: "神原", flight: "ANA578",  route: "新千歳 → UKB",          departure: "18:35発" },
+      ],
+    },
     events: [
       { 
         time: "09:30", 
@@ -464,11 +457,11 @@ const DAYS = [
         type: "move", 
         desc: "帯広から道東自動車道で新千歳へ（約2時間半のドライブ）。到着前にレンタカーのガソリン満タン返しを忘れずに。" 
       },
-      { 
-        time: "16:00", 
-        title: "レンタカー返却", 
-        type: "move", 
-        desc: "新千歳空港 着。レンタカーを返却し、送迎バスで空港へ。" 
+      {
+        time: "16:00",
+        title: "🚗 レンタカー返却",
+        type: "move",
+        desc: "新千歳空港 着。カースタレンタカー（予約番号: R0PKQ2ZG）を返却。ガソリン満タン確認を忘れずに。送迎バスで空港ターミナルへ（約10分）。",
       },
       { 
         time: "16:30", 
@@ -484,11 +477,11 @@ const DAYS = [
         tags: ["サウナ"],
         desc: "空港内にある本格的な天然温泉とサウナ。フライトまでの1時間、最後のサウナで汗を流し、風呂上がりのサッポロクラシック（生ビール）をキメるという、神がかったエンディングが可能。" 
       },
-      { 
-        time: "18:25", 
-        title: "✈ 新千歳→福岡", 
-        type: "move", 
-        desc: "ANA便でテイクオフ。体はポカポカ、腹はパンパン、荷物は最小限の最強の状態で九州へ帰還。ありがとう北海道。" 
+      {
+        time: "18:20〜",
+        title: "✈ 新千歳 解散・帰路",
+        type: "move",
+        desc: "細岡: ANA1280（18:20発）→ 福岡（FUK）\n神原: ANA578（18:35発）→ UKB\n\n体はポカポカ、腹はパンパン、荷物は最小限の最強状態で帰還。ありがとう北海道。",
       },
     ],
     gourmet: [
@@ -625,7 +618,7 @@ function EventCard({ ev, idx }) {
                     background: "#d4553a",
                     color: "#fff",
                     padding: "2px 7px",
-                    borderRadius: 8,
+                    borderRadius: 6,
                     fontWeight: 700,
                     animation: "pulse 2s infinite",
                   }}
@@ -634,7 +627,7 @@ function EventCard({ ev, idx }) {
                 </span>
               )}
               {ev.optional && (
-                <span style={{ fontSize: 9, background: "#ede6d8", color: "#8a7f72", padding: "2px 7px", borderRadius: 8 }}>
+                <span style={{ fontSize: 9, background: "#ede6d8", color: "#8a7f72", padding: "2px 7px", borderRadius: 6 }}>
                   余裕あれば
                 </span>
               )}
@@ -651,7 +644,7 @@ function EventCard({ ev, idx }) {
           </div>
           <div style={{ textAlign: "right", flexShrink: 0 }}>
             <span style={{ fontSize: 11, color: "#8a7f72", fontFamily: "'M PLUS Rounded 1c'", fontWeight: 700 }}>{ev.time}</span>
-            <div style={{ fontSize: 14, color: c, transition: "transform .3s", transform: open ? "rotate(180deg)" : "rotate(0)", marginTop: 2 }}>▾</div>
+            <span style={{ fontSize: 14, color: c, display: "inline-block", transition: "transform .3s", transform: open ? "rotate(180deg)" : "none", lineHeight: 1, marginTop: 2 }}>▾</span>
           </div>
         </div>
         <div
@@ -685,13 +678,20 @@ function EventCard({ ev, idx }) {
 
 function RentalCarCard({ car }) {
   const [open, setOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const handleCopy = (e) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(car.reservationNo);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
   return (
     <Anim>
       <div
         style={{
           background: open ? "linear-gradient(135deg,#e8f4ea,#f5faf6)" : "linear-gradient(135deg,rgba(42,90,62,.06),#faf8f5)",
           border: "1px solid rgba(42,90,62,.18)",
-          borderRadius: 10,
+          borderRadius: 12,
           marginBottom: 10,
           overflow: "hidden",
           transition: "all .35s cubic-bezier(.4,0,.2,1)",
@@ -719,13 +719,30 @@ function RentalCarCard({ car }) {
             <div style={{ fontSize: 13, fontWeight: 700, color: "#1a3a2a" }}>{car.company}</div>
           </div>
           <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 3 }}>
-            <span style={{ fontSize: 10, color: "#2a5a3e", fontWeight: 700, background: "rgba(42,90,62,.1)", padding: "2px 7px", borderRadius: 6 }}>
-              {car.reservationNo}
+            <span
+              onClick={handleCopy}
+              style={{
+                fontSize: 10, color: "#2a5a3e", fontWeight: 700,
+                background: copied ? "rgba(42,90,62,.22)" : "rgba(42,90,62,.1)",
+                padding: "2px 7px", borderRadius: 6, cursor: "pointer",
+                transition: "background .2s", userSelect: "none",
+              }}
+            >
+              {copied ? "✓ コピー済み" : car.reservationNo}
             </span>
-            <span style={{ fontSize: 12, color: "#2a5a3e", transition: "transform .3s", transform: open ? "rotate(180deg)" : "rotate(0)", display: "inline-block" }}>▾</span>
+            <span style={{ fontSize: 14, color: "#2a5a3e", display: "inline-block", transition: "transform .3s", transform: open ? "rotate(180deg)" : "none", lineHeight: 1 }}>▾</span>
           </div>
         </button>
-        <div style={{ maxHeight: open ? 1000 : 0, overflow: "hidden", transition: "max-height .45s cubic-bezier(.4,0,.2,1)" }}>
+        <div
+          style={{
+            maxHeight: open ? 1000 : 0,
+            overflow: "hidden",
+            opacity: open ? 1 : 0,
+            transitionProperty: "max-height, opacity",
+            transitionDuration: open ? ".45s, .3s" : ".3s, .15s",
+            transitionTimingFunction: "cubic-bezier(.4,0,.2,1)",
+          }}
+        >
           <div style={{ padding: "0 12px 12px", borderTop: "1px solid rgba(42,90,62,.08)" }}>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, marginTop: 10 }}>
               {[
@@ -744,6 +761,12 @@ function RentalCarCard({ car }) {
               <div style={{ fontSize: 10, color: "#8a7f72", marginBottom: 2 }}>🛡 補償</div>
               <div style={{ fontSize: 12, fontWeight: 600, color: "#1a3a2a" }}>{car.insurance}</div>
             </div>
+            {car.addr && (
+              <div style={{ marginTop: 6, background: "rgba(255,255,255,.75)", borderRadius: 8, padding: "8px 10px", border: "1px solid rgba(42,90,62,.08)" }}>
+                <div style={{ fontSize: 10, color: "#8a7f72", marginBottom: 2 }}>📍 店舗住所</div>
+                <div style={{ fontSize: 12, fontWeight: 600, color: "#1a3a2a" }}>{car.addr}</div>
+              </div>
+            )}
             <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 5 }}>
               {car.notes.map((note, i) => (
                 <div key={i} style={{ fontSize: 12, color: "#5c5347", lineHeight: 1.7, background: "rgba(212,85,58,.04)", border: "1px solid rgba(212,85,58,.12)", borderRadius: 8, padding: "7px 10px" }}>
@@ -780,13 +803,17 @@ function RentalCarCard({ car }) {
 
 function FlightsCard({ flights }) {
   const [open, setOpen] = useState(false);
+  const summary = [
+    flights.outbound && flights.outbound.flight,
+    flights.returns  && `復路${flights.returns.length}便`,
+  ].filter(Boolean).join(" ／ ");
   return (
     <Anim>
       <div
         style={{
           background: open ? "linear-gradient(135deg,#e8f0fa,#f5f8ff)" : "linear-gradient(135deg,rgba(91,164,201,.07),#faf8f5)",
           border: "1px solid rgba(91,164,201,.2)",
-          borderRadius: 10,
+          borderRadius: 12,
           marginBottom: 10,
           overflow: "hidden",
           transition: "all .35s cubic-bezier(.4,0,.2,1)",
@@ -811,43 +838,54 @@ function FlightsCard({ flights }) {
           <span style={{ fontSize: 20 }}>✈️</span>
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 10, color: "#8a7f72", fontWeight: 500 }}>フライト情報</div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#1a3a2a" }}>
-              {flights.outbound.flight} ／ 復路2便
-            </div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#1a3a2a" }}>{summary}</div>
           </div>
-          <span style={{ fontSize: 12, color: "#5ba4c9", transition: "transform .3s", transform: open ? "rotate(180deg)" : "rotate(0)", display: "inline-block" }}>▾</span>
+          <span style={{ fontSize: 14, color: "#5ba4c9", display: "inline-block", transition: "transform .3s", transform: open ? "rotate(180deg)" : "none", lineHeight: 1 }}>▾</span>
         </button>
-        <div style={{ maxHeight: open ? 1000 : 0, overflow: "hidden", transition: "max-height .45s cubic-bezier(.4,0,.2,1)" }}>
+        <div
+          style={{
+            maxHeight: open ? 1000 : 0,
+            overflow: "hidden",
+            opacity: open ? 1 : 0,
+            transitionProperty: "max-height, opacity",
+            transitionDuration: open ? ".45s, .3s" : ".3s, .15s",
+            transitionTimingFunction: "cubic-bezier(.4,0,.2,1)",
+          }}
+        >
           <div style={{ padding: "0 12px 12px", borderTop: "1px solid rgba(91,164,201,.1)" }}>
-            <div style={{ marginTop: 10 }}>
-              <div style={{ fontSize: 10, fontWeight: 700, color: "#5ba4c9", letterSpacing: 1, marginBottom: 6 }}>
-                ▶ 往路（{flights.outbound.date} · {flights.outbound.note}）
-              </div>
-              <div style={{ background: "rgba(255,255,255,.8)", borderRadius: 10, padding: "10px 12px", border: "1px solid rgba(91,164,201,.12)" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span style={{ fontSize: 13, fontWeight: 800, color: "#1a3a2a" }}>{flights.outbound.flight}</span>
-                  <span style={{ fontSize: 12, color: "#5ba4c9", fontWeight: 700 }}>{flights.outbound.departure}</span>
+            {flights.outbound && (
+              <div style={{ marginTop: 10 }}>
+                <div style={{ fontSize: 10, fontWeight: 700, color: "#5ba4c9", letterSpacing: 1, marginBottom: 6 }}>
+                  ▶ 往路（{flights.outbound.date} · {flights.outbound.note}）
                 </div>
-                <div style={{ fontSize: 12, color: "#5c5347", marginTop: 4 }}>{flights.outbound.route}</div>
-              </div>
-            </div>
-            <div style={{ marginTop: 10 }}>
-              <div style={{ fontSize: 10, fontWeight: 700, color: "#5ba4c9", letterSpacing: 1, marginBottom: 6 }}>
-                ◀ 復路（4/30(木) · 新千歳解散）
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                {flights.returns.map((r, i) => (
-                  <div key={i} style={{ background: "rgba(255,255,255,.8)", borderRadius: 10, padding: "10px 12px", border: "1px solid rgba(91,164,201,.12)" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-                      <span style={{ fontSize: 11, fontWeight: 700, color: "#5ba4c9", background: "rgba(91,164,201,.12)", padding: "1px 7px", borderRadius: 6 }}>{r.name}</span>
-                      <span style={{ fontSize: 13, fontWeight: 800, color: "#1a3a2a" }}>{r.flight}</span>
-                      <span style={{ fontSize: 12, color: "#5ba4c9", fontWeight: 700 }}>{r.departure}</span>
-                    </div>
-                    <div style={{ fontSize: 12, color: "#5c5347", marginTop: 4 }}>{r.route}</div>
+                <div style={{ background: "rgba(255,255,255,.8)", borderRadius: 8, padding: "10px 12px", border: "1px solid rgba(91,164,201,.12)" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span style={{ fontSize: 13, fontWeight: 800, color: "#1a3a2a" }}>{flights.outbound.flight}</span>
+                    <span style={{ fontSize: 12, color: "#5ba4c9", fontWeight: 700 }}>{flights.outbound.departure}</span>
                   </div>
-                ))}
+                  <div style={{ fontSize: 12, color: "#5c5347", marginTop: 4 }}>{flights.outbound.route}</div>
+                </div>
               </div>
-            </div>
+            )}
+            {flights.returns && (
+              <div style={{ marginTop: 10 }}>
+                <div style={{ fontSize: 10, fontWeight: 700, color: "#5ba4c9", letterSpacing: 1, marginBottom: 6 }}>
+                  ◀ 復路（4/30(木) · 新千歳解散）
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                  {flights.returns.map((r, i) => (
+                    <div key={i} style={{ background: "rgba(255,255,255,.8)", borderRadius: 8, padding: "10px 12px", border: "1px solid rgba(91,164,201,.12)" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                        <span style={{ fontSize: 11, fontWeight: 700, color: "#5ba4c9", background: "rgba(91,164,201,.12)", padding: "1px 7px", borderRadius: 6 }}>{r.name}</span>
+                        <span style={{ fontSize: 13, fontWeight: 800, color: "#1a3a2a" }}>{r.flight}</span>
+                        <span style={{ fontSize: 12, color: "#5ba4c9", fontWeight: 700 }}>{r.departure}</span>
+                      </div>
+                      <div style={{ fontSize: 12, color: "#5c5347", marginTop: 4 }}>{r.route}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -997,7 +1035,7 @@ function DayView({ day }) {
                   {g.tags && (
                     <div style={{ display: "flex", gap: 4, marginTop: 3, flexWrap: "wrap" }}>
                       {g.tags.map((t) => (
-                        <span key={t} style={{ fontSize: 9, color: "#d4553a", background: "rgba(212,85,58,.06)", padding: "1px 5px", borderRadius: 5 }}>
+                        <span key={t} style={{ fontSize: 9, color: "#d4553a", background: "rgba(212,85,58,.06)", padding: "1px 6px", borderRadius: 6 }}>
                           {t}
                         </span>
                       ))}
@@ -1116,7 +1154,7 @@ export default function App() {
 
       <div style={{ background: "linear-gradient(175deg,#0f2419 0%,#1a3a2a 40%,#2a5a3e 70%,#3d7a5a 100%)", padding: "52px 24px 36px", textAlign: "center", position: "relative", overflow: "hidden" }}>
         <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 40, background: "#faf8f5", clipPath: "polygon(0 60%,30% 30%,55% 50%,80% 20%,100% 45%,100% 100%,0 100%)" }} />
-        <div style={{ fontSize: 10, letterSpacing: 4, color: "#a8d8ea", marginBottom: 14, animation: "slideUp .8s .2s both" }}>2025.04.24 — 04.30</div>
+        <div style={{ fontSize: 10, letterSpacing: 4, color: "#a8d8ea", marginBottom: 14, animation: "slideUp .8s .2s both" }}>2026.04.24 — 04.30</div>
         <div style={{ fontFamily: "'Kaisei Decol',serif", fontSize: 44, fontWeight: 700, color: "#fff", lineHeight: 1.1, textShadow: "0 4px 24px rgba(0,0,0,.3)", animation: "slideUp .8s .4s both" }}>北の大地</div>
         <div style={{ fontFamily: "'Kaisei Decol',serif", fontSize: 14, color: "#a8d8ea", marginTop: 6, animation: "slideUp .8s .6s both" }}>歩く・走る・食う — 6泊7日</div>
         <div style={{ display: "inline-grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 22, animation: "slideUp .8s .8s both" }}>

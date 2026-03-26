@@ -229,15 +229,36 @@ const DAYS = [
         desc: "最終フェリー（香深 17:05発 → 稚内 19:00着）。ドーミーインへ直行。夜鳴きそば（21:30〜23:00）で回復し、翌日の激走350kmに備えて早寝。",
       },
     ],
-    warnings: [
-      "【出発前必須】rebun-trail.jpでコース通行状況確認。4月末は残雪で閉鎖の可能性あり",
-      "水1.5L×2本・行動食を稚内のコンビニで事前調達（コース中に補給ポイントなし）",
-      "常に強風。体感-5〜-10°C。防風アウター・手袋・ネックウォーマー必須",
-      "コース短縮①：鉄府集落（11:10）が最終離脱ポイント。時間・体力不安ならここで車道へ",
-      "コース短縮②：ゴロタ岬で折り返す場合、江戸屋バス停（岬入口から徒歩20分）からバス離脱可",
-      "浜中回収ルートで体力・天候に不安があればタクシー（0163-86-1511）に切り替えOK",
-      "携帯電波：コース中ほぼ圏外。地図はオフラインDL必須",
-      "フェリー欠航時は前日夜にプランBを用意（heartlandferry.jp）",
+    warningGroups: [
+      {
+        title: "出発前必須",
+        icon: "✅",
+        accent: "#d4553a",
+        items: [
+          { text: "コース通行状況を確認（4月末は残雪で閉鎖の可能性あり）", url: "https://rebun-trail.jp", urlLabel: "rebun-trail.jp" },
+          { text: "水1.5L×2本・行動食を稚内のコンビニで事前調達（コース中に補給ポイントなし）" },
+        ],
+      },
+      {
+        title: "当日の注意",
+        icon: "⚠️",
+        accent: "#8a7f72",
+        items: [
+          { text: "常に強風。体感-5〜-10°C。防風アウター・手袋・ネックウォーマー必須" },
+          { text: "コース中ほぼ圏外。地図はオフラインDLが必須" },
+          { text: "フェリー欠航時は前日夜にプランBを用意", url: "https://heartlandferry.jp", urlLabel: "heartlandferry.jp" },
+        ],
+      },
+      {
+        title: "コース短縮プラン",
+        icon: "🚪",
+        accent: "#5ba4c9",
+        items: [
+          { text: "鉄府集落（11:10）が最終離脱ポイント。時間・体力不安ならここで車道へ" },
+          { text: "ゴロタ岬で折り返す場合、江戸屋バス停（入口から徒歩20分）からバス離脱可" },
+          { text: "浜中ゴール後の回収ルートで不安があればタクシーに切り替えOK", tel: "0163-86-1511", telLabel: "礼文島ハイヤー" },
+        ],
+      },
     ],
     gourmet: [
       {
@@ -861,6 +882,89 @@ function RentalCarCard({ car }) {
   );
 }
 
+function WarningsCard({ groups }) {
+  const [open, setOpen] = useState(false);
+  const total = groups.reduce((s, g) => s + g.items.length, 0);
+  return (
+    <Anim>
+      <div
+        style={{
+          border: "1px solid rgba(212,85,58,.18)",
+          borderRadius: 12,
+          marginTop: 12,
+          overflow: "hidden",
+          transition: "all .35s cubic-bezier(.4,0,.2,1)",
+          background: open ? "rgba(212,85,58,.03)" : "transparent",
+          boxShadow: open ? "0 4px 16px rgba(212,85,58,.07)" : "none",
+        }}
+      >
+        <button
+          onClick={() => setOpen(!open)}
+          style={{
+            width: "100%", background: "none", border: "none",
+            padding: "10px 14px", cursor: "pointer",
+            display: "flex", alignItems: "center", gap: 8,
+            fontFamily: "inherit", textAlign: "left",
+          }}
+        >
+          <span style={{ fontSize: 16 }}>⚠️</span>
+          <div style={{ flex: 1 }}>
+            <span style={{ fontSize: 13, fontWeight: 700, color: "#d4553a" }}>注意事項・コース情報</span>
+            <span style={{ fontSize: 11, color: "#8a7f72", marginLeft: 6 }}>{total}件</span>
+          </div>
+          <span style={{ fontSize: 14, color: "#d4553a", display: "inline-block", transition: "transform .3s", transform: open ? "rotate(180deg)" : "none", lineHeight: 1 }}>▾</span>
+        </button>
+        <div
+          style={{
+            maxHeight: open ? 2000 : 0, overflow: "hidden",
+            opacity: open ? 1 : 0,
+            transitionProperty: "max-height, opacity",
+            transitionDuration: open ? ".45s, .3s" : ".3s, .15s",
+            transitionTimingFunction: "cubic-bezier(.4,0,.2,1)",
+          }}
+        >
+          <div style={{ padding: "0 12px 14px", display: "flex", flexDirection: "column", gap: 10 }}>
+            {groups.map((group, gi) => (
+              <div key={gi}>
+                <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 5, borderTop: gi > 0 ? "1px solid rgba(139,111,71,.08)" : "none", paddingTop: gi > 0 ? 10 : 4 }}>
+                  <span style={{ fontSize: 13 }}>{group.icon}</span>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: group.accent, letterSpacing: 0.5 }}>{group.title}</span>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                  {group.items.map((item, ii) => (
+                    <div key={ii} style={{ display: "flex", gap: 7, alignItems: "flex-start", background: "rgba(255,255,255,.7)", borderRadius: 8, padding: "7px 10px", border: `1px solid ${group.accent}18` }}>
+                      <span style={{ fontSize: 11, color: group.accent, flexShrink: 0, marginTop: 1 }}>▸</span>
+                      <span style={{ fontSize: 12, color: "#5c5347", lineHeight: 1.65, flex: 1 }}>
+                        {item.text}
+                        {item.url && (
+                          <a href={item.url} target="_blank" rel="noopener noreferrer"
+                            style={{ marginLeft: 4, color: group.accent, fontWeight: 700, textDecoration: "none", borderBottom: `1px solid ${group.accent}55` }}
+                            onClick={e => e.stopPropagation()}
+                          >
+                            {item.urlLabel} ↗
+                          </a>
+                        )}
+                        {item.tel && (
+                          <a href={`tel:${item.tel}`}
+                            style={{ marginLeft: 4, color: "#2a5a3e", fontWeight: 700, textDecoration: "none", background: "rgba(42,90,62,.08)", padding: "1px 6px", borderRadius: 5 }}
+                            onClick={e => e.stopPropagation()}
+                          >
+                            📞 {item.telLabel}
+                          </a>
+                        )}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </Anim>
+  );
+}
+
 function BikeRentalCard({ rental }) {
   const [open, setOpen] = useState(false);
   const ac = "#8b6f47";
@@ -1117,7 +1221,9 @@ function DayView({ day }) {
         ))}
       </div>
 
-      {day.warnings?.length > 0 && (
+      {day.warningGroups && <WarningsCard groups={day.warningGroups} />}
+
+      {!day.warningGroups && day.warnings?.length > 0 && (
         <Anim>
           <div style={{ background: "rgba(212,85,58,.04)", border: "1px solid rgba(212,85,58,.12)", borderRadius: 10, padding: "10px 12px", marginTop: 12 }}>
             {day.warnings.map((w, i) => (

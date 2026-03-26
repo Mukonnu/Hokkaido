@@ -13,12 +13,59 @@ const DAYS = [
     stayPrice: "¥16,026（1人¥8,013）",
     stayNote: "札幌のど真ん中。ジンギスカンで煙まみれになった体を、セルフロウリュサウナと露天風呂で即リセットできる最高のスタート拠点。",
     mapQuery: "成吉思汗だるま本店+秀岳荘白石店+新千歳空港+すすきの",
+    rentalCar: {
+      company: "カースタレンタカー 新千歳空港店",
+      tel: "0123-66-9153",
+      pickup: "4/24(金) 13:00",
+      pickupNote: "ANA61便到着後",
+      dropoff: "4/30(木) 16:00",
+      reservationNo: "R0PKQ2ZG",
+      reservedBy: "神原 春太",
+      price: "¥35,420（現地決済）",
+      insurance: "免責補償・あんしん補償プラン加入済み",
+      notes: [
+        "空港到着後すぐに店舗へ電話すること。無料送迎バスで移動。",
+        "カウンターで2名分の運転免許証を提示し、両名とも運転者登録を行うこと。",
+      ],
+    },
+    flights: {
+      outbound: {
+        flight: "ANA61",
+        route: "羽田（HND） → 新千歳（CTS）",
+        departure: "11:00発",
+        date: "4/24(金)",
+        note: "2名共通",
+      },
+      returns: [
+        {
+          name: "細岡",
+          flight: "ANA1280",
+          route: "新千歳 → 福岡（FUK）",
+          departure: "18:20発",
+        },
+        {
+          name: "神原",
+          flight: "ANA578",
+          route: "新千歳 → UKB",
+          departure: "18:35発",
+        },
+      ],
+    },
     events: [
       {
         time: "12:35",
         title: "✈ 新千歳空港 着",
         type: "move",
-        desc: "福岡空港から約2.5時間。到着後1Fレンタカーカウンターへ。送迎バスで営業所へ移動、手続き約1時間。4WD＋スタッドレス確認。ETCカードセット。道央道で札幌方面へ。",
+        desc: "羽田から約1時間30分。到着後すぐにレンタカー店舗へ電話し、無料送迎バスで移動。手続き約1時間。4WD＋スタッドレス確認。ETCカードセット。道央道で札幌方面へ。",
+      },
+      {
+        time: "14:30",
+        title: "🍞 どんぐり",
+        type: "food",
+        tags: ["パン屋"],
+        optional: true,
+        desc: "北海道を代表する人気ベーカリーチェーン。道産小麦を使った手作りパンが充実。新千歳から札幌へ向かう途中に立ち寄れる。翌日以降の行動食・朝食ストックにも◎。",
+        hours: "店舗により異なる（7:00〜19:00頃）",
       },
       {
         time: "15:30",
@@ -636,6 +683,178 @@ function EventCard({ ev, idx }) {
   );
 }
 
+function RentalCarCard({ car }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <Anim>
+      <div
+        style={{
+          background: open ? "linear-gradient(135deg,#e8f4ea,#f5faf6)" : "linear-gradient(135deg,rgba(42,90,62,.06),#faf8f5)",
+          border: "1px solid rgba(42,90,62,.18)",
+          borderRadius: 10,
+          marginBottom: 10,
+          overflow: "hidden",
+          transition: "all .35s cubic-bezier(.4,0,.2,1)",
+          boxShadow: open ? "0 4px 16px rgba(42,90,62,.1)" : "0 1px 4px rgba(0,0,0,.03)",
+        }}
+      >
+        <button
+          onClick={() => setOpen(!open)}
+          style={{
+            width: "100%",
+            background: "none",
+            border: "none",
+            padding: "10px 12px",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            fontFamily: "inherit",
+            textAlign: "left",
+          }}
+        >
+          <span style={{ fontSize: 20 }}>🚗</span>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 10, color: "#8a7f72", fontWeight: 500 }}>レンタカー予約</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#1a3a2a" }}>{car.company}</div>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 3 }}>
+            <span style={{ fontSize: 10, color: "#2a5a3e", fontWeight: 700, background: "rgba(42,90,62,.1)", padding: "2px 7px", borderRadius: 6 }}>
+              {car.reservationNo}
+            </span>
+            <span style={{ fontSize: 12, color: "#2a5a3e", transition: "transform .3s", transform: open ? "rotate(180deg)" : "rotate(0)", display: "inline-block" }}>▾</span>
+          </div>
+        </button>
+        <div style={{ maxHeight: open ? 1000 : 0, overflow: "hidden", transition: "max-height .45s cubic-bezier(.4,0,.2,1)" }}>
+          <div style={{ padding: "0 12px 12px", borderTop: "1px solid rgba(42,90,62,.08)" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, marginTop: 10 }}>
+              {[
+                ["📅 貸出", `${car.pickup}\n${car.pickupNote}`],
+                ["📅 返却", car.dropoff],
+                ["👤 予約者", car.reservedBy],
+                ["💰 料金", car.price],
+              ].map(([label, value]) => (
+                <div key={label} style={{ background: "rgba(255,255,255,.75)", borderRadius: 8, padding: "8px 10px", border: "1px solid rgba(42,90,62,.08)" }}>
+                  <div style={{ fontSize: 10, color: "#8a7f72", marginBottom: 2 }}>{label}</div>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: "#1a3a2a", whiteSpace: "pre-line", lineHeight: 1.5 }}>{value}</div>
+                </div>
+              ))}
+            </div>
+            <div style={{ marginTop: 6, background: "rgba(255,255,255,.75)", borderRadius: 8, padding: "8px 10px", border: "1px solid rgba(42,90,62,.08)" }}>
+              <div style={{ fontSize: 10, color: "#8a7f72", marginBottom: 2 }}>🛡 補償</div>
+              <div style={{ fontSize: 12, fontWeight: 600, color: "#1a3a2a" }}>{car.insurance}</div>
+            </div>
+            <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 5 }}>
+              {car.notes.map((note, i) => (
+                <div key={i} style={{ fontSize: 12, color: "#5c5347", lineHeight: 1.7, background: "rgba(212,85,58,.04)", border: "1px solid rgba(212,85,58,.12)", borderRadius: 8, padding: "7px 10px" }}>
+                  ⚠ {note}
+                </div>
+              ))}
+            </div>
+            <a
+              href={`tel:${car.tel}`}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 6,
+                marginTop: 10,
+                padding: "9px",
+                background: "#2a5a3e",
+                color: "#fff",
+                borderRadius: 10,
+                textDecoration: "none",
+                fontSize: 13,
+                fontWeight: 700,
+                fontFamily: "inherit",
+              }}
+            >
+              📞 {car.tel}（到着後に電話）
+            </a>
+          </div>
+        </div>
+      </div>
+    </Anim>
+  );
+}
+
+function FlightsCard({ flights }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <Anim>
+      <div
+        style={{
+          background: open ? "linear-gradient(135deg,#e8f0fa,#f5f8ff)" : "linear-gradient(135deg,rgba(91,164,201,.07),#faf8f5)",
+          border: "1px solid rgba(91,164,201,.2)",
+          borderRadius: 10,
+          marginBottom: 10,
+          overflow: "hidden",
+          transition: "all .35s cubic-bezier(.4,0,.2,1)",
+          boxShadow: open ? "0 4px 16px rgba(91,164,201,.12)" : "0 1px 4px rgba(0,0,0,.03)",
+        }}
+      >
+        <button
+          onClick={() => setOpen(!open)}
+          style={{
+            width: "100%",
+            background: "none",
+            border: "none",
+            padding: "10px 12px",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            fontFamily: "inherit",
+            textAlign: "left",
+          }}
+        >
+          <span style={{ fontSize: 20 }}>✈️</span>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 10, color: "#8a7f72", fontWeight: 500 }}>フライト情報</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#1a3a2a" }}>
+              {flights.outbound.flight} ／ 復路2便
+            </div>
+          </div>
+          <span style={{ fontSize: 12, color: "#5ba4c9", transition: "transform .3s", transform: open ? "rotate(180deg)" : "rotate(0)", display: "inline-block" }}>▾</span>
+        </button>
+        <div style={{ maxHeight: open ? 1000 : 0, overflow: "hidden", transition: "max-height .45s cubic-bezier(.4,0,.2,1)" }}>
+          <div style={{ padding: "0 12px 12px", borderTop: "1px solid rgba(91,164,201,.1)" }}>
+            <div style={{ marginTop: 10 }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: "#5ba4c9", letterSpacing: 1, marginBottom: 6 }}>
+                ▶ 往路（{flights.outbound.date} · {flights.outbound.note}）
+              </div>
+              <div style={{ background: "rgba(255,255,255,.8)", borderRadius: 10, padding: "10px 12px", border: "1px solid rgba(91,164,201,.12)" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span style={{ fontSize: 13, fontWeight: 800, color: "#1a3a2a" }}>{flights.outbound.flight}</span>
+                  <span style={{ fontSize: 12, color: "#5ba4c9", fontWeight: 700 }}>{flights.outbound.departure}</span>
+                </div>
+                <div style={{ fontSize: 12, color: "#5c5347", marginTop: 4 }}>{flights.outbound.route}</div>
+              </div>
+            </div>
+            <div style={{ marginTop: 10 }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: "#5ba4c9", letterSpacing: 1, marginBottom: 6 }}>
+                ◀ 復路（4/30(木) · 新千歳解散）
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                {flights.returns.map((r, i) => (
+                  <div key={i} style={{ background: "rgba(255,255,255,.8)", borderRadius: 10, padding: "10px 12px", border: "1px solid rgba(91,164,201,.12)" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                      <span style={{ fontSize: 11, fontWeight: 700, color: "#5ba4c9", background: "rgba(91,164,201,.12)", padding: "1px 7px", borderRadius: 6 }}>{r.name}</span>
+                      <span style={{ fontSize: 13, fontWeight: 800, color: "#1a3a2a" }}>{r.flight}</span>
+                      <span style={{ fontSize: 12, color: "#5ba4c9", fontWeight: 700 }}>{r.departure}</span>
+                    </div>
+                    <div style={{ fontSize: 12, color: "#5c5347", marginTop: 4 }}>{r.route}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Anim>
+  );
+}
+
 function DayView({ day }) {
   const [showG, setShowG] = useState(false);
   return (
@@ -667,6 +886,9 @@ function DayView({ day }) {
           </div>
         </Anim>
       )}
+
+      {day.rentalCar && <RentalCarCard car={day.rentalCar} />}
+      {day.flights && <FlightsCard flights={day.flights} />}
 
       {day.highlight && (
         <Anim>

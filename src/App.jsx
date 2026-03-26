@@ -169,43 +169,74 @@ const DAYS = [
     highlight:
       '最北の離島「礼文島」。12.4kmの岬めぐりコース。右に青い海、正面に利尻富士。花の浮島を歩く。',
     mapQuery: "稚内港+礼文島+スコトン岬+澄海岬",
-    trek: { distance: "12.4km", time: "約5h20m", level: "★★ 中級", elevation: "180m" },
+    trek: { distance: "12.4km", time: "4〜5時間", level: "★★ 中級", elevation: "180m" },
     events: [
       {
         time: "05:30",
-        title: "稚内港集合",
+        title: "🚢 稚内港 乗船",
         type: "move",
         important: true,
-        desc: "ドーミーインから港まで車5分。連泊なのでトレッキング装備だけ持って出発。6:00乗船手続き開始。2等自由席 片道¥3,950。船内で朝食を済ませておくと◎。\n\n⚠ 前日夜にフェリー運航確認（heartlandferry.jp）。強風で欠航リスクあり。",
+        desc: "ドーミーインから港まで車5分。連泊なので軽装備だけ持って出発。乗船手続きは6:00開始。2等自由席 片道¥3,950。船内で朝食を済ませると、香深港着後すぐバスに乗れる。\n\n⚠ 前日夜にフェリー運航確認（heartlandferry.jp）。強風で欠航リスクあり。",
       },
       {
-        time: "09:00",
-        title: "🥾 トレッキング開始",
+        time: "08:30",
+        title: "香深港 着・バス乗り換え",
+        type: "move",
+        desc: "フェリー下船（香深港）。港内コインロッカー（¥200〜）にトレッキング不要品を預ける。\n\n🚌 次のバス：宗谷バス 09:25発 → スコトン岬行（所要56分 / ¥930）\n55分ある間に港周辺で軽食・水分補給を済ませておく。",
+      },
+      {
+        time: "10:21",
+        title: "🥾 岬めぐりコース スタート",
         type: "spot",
         tags: ["トレッキング"],
         important: true,
-        desc: "バスでスコトン岬へ。\n\nスコトン岬→江戸屋山道→ゴロタ岬(360°絶景)→ゴロタ浜(急下り注意)→鉄府→澄海岬(エメラルドの海)→浜中\n\n12.4km/約5h20m。常に強風で体感-5〜10℃。水1L以上、コース中トイレは西上泊のみ。\n\n⚠ 浜中→香深港バスは11:50台の次が18時台。17:05フェリーに逆算。",
+        desc: "スコトン岬からバスを降り、南へ縦走開始。\n\n① スコトン岬 → ゴロタ岬（70分・360°絶景）\n② ゴロタ浜 急下り → 鉄府漁港（80分・トイレあり）\n③ 鉄府 → 澄海岬・西上泊（50分・エメラルドの海。ここでランチ休憩）\n④ 西上泊 → 浜中（40分・ゴール）\n\n常に強風で体感-5〜-10°C。水1L以上持参。コース中のトイレは鉄府港・西上泊のみ。携帯はほぼ圏外。",
       },
       {
         time: "14:30",
-        title: "ランチ",
-        type: "food",
-        tags: ["海鮮"],
-        desc: "トレッキング後の空腹に島の海鮮を。ホッケのちゃんちゃん焼き（礼文名物）やウニ丼。炉ばたちどりがおすすめ。",
+        title: "🏁 浜中 ゴール → タクシー手配",
+        type: "move",
+        important: true,
+        desc: "コースゴールの浜中バス停に到着。\n\n⚠ 午後バスは11:50台の次が18時台のため乗れない。17:05フェリーに乗るにはタクシー一択！\n\n📞 礼文島ハイヤー：0163-86-1511\n浜中 → 香深港 約20〜25分 / ¥2,000〜3,000\n※ 歩きながら電話して、到着と同時に乗れるようにしておく。",
+        tel: "0163-86-1511",
       },
-      { time: "15:30", title: "♨ うすゆきの湯", type: "onsen", desc: "礼文島唯一の温泉。¥600。16:30には出て港へ。17:05の最終便に乗り遅れると島で一泊確定。" },
-      { time: "17:05", title: "🚢 礼文→稚内", type: "move", desc: "最終便。18:55稚内着。ドーミーインで温泉＋夜鳴きそばで回復。翌日の長距離に備えて早寝。" },
+      {
+        time: "15:10",
+        title: "♨ うすゆきの湯",
+        type: "onsen",
+        desc: "香深港から徒歩3分。礼文島唯一の天然温泉でトレッキングの疲労を即リセット。16:10には出て乗船準備へ。\n\n⚠ 17:05フェリーに乗り遅れると島で一泊確定。絶対に時間厳守！",
+        tel: "0163-86-2345",
+        addr: "礼文町香深村ワウシ",
+        price: "¥600",
+        hours: "12:00〜22:00（受付21:30まで）",
+      },
+      {
+        time: "17:05",
+        title: "🚢 礼文→稚内 フェリー",
+        type: "move",
+        desc: "最終フェリー（香深 17:05発 → 稚内 19:00着）。ドーミーインへ直行。夜鳴きそば（21:30〜23:00）で回復し、翌日の激走350kmに備えて早寝。",
+      },
     ],
     warnings: [
-      "常に強風。体感温度は-5〜10°C",
-      "4月は残雪あり。rebun-trail.jpで通行確認",
-      "浜中→香深港バスは11:50台→次は18時台",
-      "コース中トイレは西上泊のみ。水1L以上",
-      "携帯圏外エリアあり",
+      "常に強風。体感-5〜-10°C。防風アウター・手袋・ネックウォーマー必須",
+      "4月は残雪あり。前日にrebun-trail.jpでコース状況確認",
+      "⚠ 浜中→香深港の午後バスは11:50台→次が18時台。礼文島ハイヤー（0163-86-1511）を必ず手配",
+      "コース中トイレは鉄府港・西上泊のみ。水1L以上持参",
+      "携帯電波：コース中ほぼ圏外。地図はオフラインDL必須",
+      "フェリー欠航時のプランBを前日夜に考えておく（heartlandferry.jp）",
     ],
     gourmet: [
-      { name: "炉ばた ちどり", note: "ホッケちゃんちゃん焼き元祖。香深港徒歩5分。炭火+味噌+生ビール。", tags: ["ホッケ"] },
-      { name: "海鮮処 かふか", note: "ウニ丼。4月末はシーズンギリギリ（旬は6月〜）。", tags: ["ウニ"] },
+      {
+        name: "炉ばた ちどり",
+        note: "ホッケちゃんちゃん焼き元祖。香深港徒歩5分。炭火+味噌+生ビール。【タイミング注意】09:25バス前の朝（8:30〜9:00）か、翌日に。",
+        tags: ["ホッケ", "香深"],
+        tel: "0163-86-1721",
+      },
+      {
+        name: "海鮮処 かふか",
+        note: "ウニ丼。4月末はシーズンギリギリ（旬は6月〜）。香深港近く。朝か翌日が狙い目。",
+        tags: ["ウニ"],
+      },
     ],
   },
   {
@@ -343,6 +374,20 @@ const DAYS = [
     stayNote: "世界的に珍しいモール温泉（美人の湯）で凍えた体を芯から溶かす。帯広駅前で翌朝の六花亭・ぱんちょうに歩いて行ける。",
     highlight: "旅のクライマックス。釧路湿原をバイクで駆け抜け、帯広の極上豚丼を経て、美人の湯で癒やされる。",
     mapQuery: "釧路+細岡駅+塘路湖+鶴居村+帯広+十勝川温泉",
+    bikeRental: {
+      shop: "Moto-Technix 釧路店",
+      bikes: [
+        { rider: "細岡", model: "KTM 390 DUKE" },
+        { rider: "神原", model: "Honda GB350" },
+      ],
+      helmet: "オンロードヘルメット L",
+      start: "09:00",
+      end: "17:00",
+      notes: [
+        "完全防寒装備で出撃。4月の北海道バイクは想像以上に寒い（防風グローブ・インナータイツ必須）",
+        "ぱんちょうの閉店（19時前）に間に合わせるため15:30〜16:00に返却推奨",
+      ],
+    },
     events: [
       {
         time: "09:00",
@@ -350,7 +395,7 @@ const DAYS = [
         type: "spot",
         tags: ["バイク"],
         important: true,
-        desc: "釧路市内でレンタル開始。完全防寒で出撃。気温は低いのでネックウォーマーやインナータイツ等必須。",
+        desc: "Moto-Technix 釧路店でピックアップ（09:00〜17:00）。細岡: KTM 390DUKE / 神原: Honda GB350。ヘルメット（オンロードL）は店で受け取り。完全防寒装備で出撃！",
       },
       {
         time: "10:00",
@@ -380,10 +425,10 @@ const DAYS = [
       },
       {
         time: "15:30",
-        title: "バイク返却",
+        title: "🏍 バイク返却",
         type: "spot",
         important: true,
-        desc: "釧路市内に帰還。※17時まで借りられるが、4月の北海道での長時間ライディングは風冷えによる体力消耗がエグいため、この時間に戻って車に乗り換えるのが疲労マネジメント的にベスト。",
+        desc: "Moto-Technix釧路店に帰還・返却（レンタルは17時まで）。4月の長時間ライディングは風冷えで体力消耗が激しいため、15:30〜16:00の返却が◎。帯広まで2時間かかるのでぱんちょうの閉店（19時前）に逆算すると、16:00出発が限界ライン。",
       },
       { 
         time: "16:00", 
@@ -801,6 +846,78 @@ function RentalCarCard({ car }) {
   );
 }
 
+function BikeRentalCard({ rental }) {
+  const [open, setOpen] = useState(false);
+  const ac = "#8b6f47";
+  return (
+    <Anim>
+      <div
+        style={{
+          background: open ? "linear-gradient(135deg,#f5ede0,#fdf8f2)" : "linear-gradient(135deg,rgba(139,111,71,.07),#faf8f5)",
+          border: `1px solid rgba(139,111,71,.2)`,
+          borderRadius: 12,
+          marginBottom: 10,
+          overflow: "hidden",
+          transition: "all .35s cubic-bezier(.4,0,.2,1)",
+          boxShadow: open ? `0 4px 16px rgba(139,111,71,.12)` : "0 1px 4px rgba(0,0,0,.03)",
+        }}
+      >
+        <button
+          onClick={() => setOpen(!open)}
+          style={{ width: "100%", background: "none", border: "none", padding: "10px 12px", cursor: "pointer", display: "flex", alignItems: "center", gap: 10, fontFamily: "inherit", textAlign: "left" }}
+        >
+          <span style={{ fontSize: 20 }}>🏍</span>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 10, color: "#8a7f72", fontWeight: 500 }}>バイクレンタル</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#1a3a2a" }}>{rental.shop}</div>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 3 }}>
+            <span style={{ fontSize: 10, color: ac, fontWeight: 700, background: `rgba(139,111,71,.12)`, padding: "2px 7px", borderRadius: 6 }}>
+              {rental.start}〜{rental.end}
+            </span>
+            <span style={{ fontSize: 14, color: ac, display: "inline-block", transition: "transform .3s", transform: open ? "rotate(180deg)" : "none", lineHeight: 1 }}>▾</span>
+          </div>
+        </button>
+        <div
+          style={{
+            maxHeight: open ? 800 : 0,
+            overflow: "hidden",
+            opacity: open ? 1 : 0,
+            transitionProperty: "max-height, opacity",
+            transitionDuration: open ? ".45s, .3s" : ".3s, .15s",
+            transitionTimingFunction: "cubic-bezier(.4,0,.2,1)",
+          }}
+        >
+          <div style={{ padding: "0 12px 12px", borderTop: `1px solid rgba(139,111,71,.1)` }}>
+            <div style={{ marginTop: 10 }}>
+              <div style={{ fontSize: 10, color: "#8a7f72", marginBottom: 6 }}>🏍 ライダー配車</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+                {rental.bikes.map((b, i) => (
+                  <div key={i} style={{ background: "rgba(255,255,255,.8)", borderRadius: 8, padding: "8px 12px", border: `1px solid rgba(139,111,71,.1)`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: ac, background: `rgba(139,111,71,.1)`, padding: "1px 7px", borderRadius: 6 }}>{b.rider}</span>
+                    <span style={{ fontSize: 13, fontWeight: 800, color: "#1a3a2a" }}>{b.model}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div style={{ marginTop: 8, background: "rgba(255,255,255,.8)", borderRadius: 8, padding: "8px 10px", border: `1px solid rgba(139,111,71,.1)` }}>
+              <div style={{ fontSize: 10, color: "#8a7f72", marginBottom: 2 }}>⛑ ヘルメット</div>
+              <div style={{ fontSize: 12, fontWeight: 600, color: "#1a3a2a" }}>{rental.helmet}</div>
+            </div>
+            <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 5 }}>
+              {rental.notes.map((note, i) => (
+                <div key={i} style={{ fontSize: 12, color: "#5c5347", lineHeight: 1.7, background: "rgba(212,85,58,.04)", border: "1px solid rgba(212,85,58,.12)", borderRadius: 8, padding: "7px 10px" }}>
+                  ⚠ {note}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </Anim>
+  );
+}
+
 function FlightsCard({ flights }) {
   const [open, setOpen] = useState(false);
   const summary = [
@@ -926,6 +1043,7 @@ function DayView({ day }) {
       )}
 
       {day.rentalCar && <RentalCarCard car={day.rentalCar} />}
+      {day.bikeRental && <BikeRentalCard rental={day.bikeRental} />}
       {day.flights && <FlightsCard flights={day.flights} />}
 
       {day.highlight && (

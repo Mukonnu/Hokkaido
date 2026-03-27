@@ -780,10 +780,18 @@ function EventCard({ ev, idx }) {
                   </div>
                 )}
                 {ev.addr && (
-                  <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
-                    <Mono color={T.text3} size={9} style={{ width: 48, flexShrink: 0 }}>ADDR</Mono>
-                    <span style={{ fontSize: 10, color: T.text2, fontFamily: T.sans, lineHeight: 1.5 }}>{ev.addr}</span>
-                  </div>
+                  <a
+                    href={`https://maps.google.com/maps?q=${encodeURIComponent(ev.addr)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ textDecoration: "none" }}
+                    onClick={e => e.stopPropagation()}
+                  >
+                    <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+                      <Mono color={T.text3} size={9} style={{ width: 48, flexShrink: 0 }}>ADDR</Mono>
+                      <span style={{ fontSize: 10, color: T.blu, fontFamily: T.sans, lineHeight: 1.5 }}>{ev.addr} ↗</span>
+                    </div>
+                  </a>
                 )}
                 {ev.tel && (
                   <a href={`tel:${ev.tel}`} style={{ textDecoration: "none" }} onClick={e => e.stopPropagation()}>
@@ -1128,6 +1136,53 @@ function FlightsCard({ flights }) {
   );
 }
 
+function SimpleAlertsCard({ warnings }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <Anim>
+      <div style={{
+        border: `1px solid ${open ? T.redBd : T.border}`,
+        background: T.card,
+        marginTop: 10,
+        overflow: "hidden",
+        transition: "border-color .2s",
+      }}>
+        <button onClick={() => setOpen(!open)} style={{
+          width: "100%", background: "none", border: "none",
+          padding: "12px 14px", cursor: "pointer",
+          display: "flex", alignItems: "center", gap: 10,
+          fontFamily: T.sans, textAlign: "left",
+        }}>
+          <div style={{ width: 28, height: 28, background: T.redBg, border: `1px solid ${T.redBd}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <Mono color={T.red} size={11} style={{ fontWeight: 700 }}>!</Mono>
+          </div>
+          <div style={{ flex: 1 }}>
+            <Mono color={T.red} size={9} style={{ display: "block", letterSpacing: "0.1em", marginBottom: 2 }}>! ALERTS</Mono>
+            <div style={{ fontSize: 12, color: T.text, fontFamily: T.sans }}>注意事項</div>
+          </div>
+          <Mono color={T.text3} size={10}>{warnings.length}件</Mono>
+          <span style={{ fontSize: 10, color: T.text3, display: "inline-block", transition: "transform .3s", transform: open ? "rotate(180deg)" : "none" }}>▾</span>
+        </button>
+        <div style={{
+          maxHeight: open ? 1000 : 0, overflow: "hidden",
+          opacity: open ? 1 : 0,
+          transitionProperty: "max-height, opacity",
+          transitionDuration: open ? ".4s, .3s" : ".25s, .15s",
+        }}>
+          <div style={{ borderTop: `1px solid ${T.border}`, padding: "10px 14px", display: "flex", flexDirection: "column", gap: 4 }}>
+            {warnings.map((w, i) => (
+              <div key={i} style={{ display: "flex", gap: 8, alignItems: "flex-start", background: T.bg, border: `1px solid ${T.border}`, padding: "7px 10px" }}>
+                <Mono color={T.text3} size={9} style={{ flexShrink: 0, marginTop: 2 }}>▸</Mono>
+                <span style={{ fontSize: 11, color: T.text2, lineHeight: 1.7, flex: 1, fontFamily: T.sans }}>{w}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </Anim>
+  );
+}
+
 function DayView({ day }) {
   const [showG, setShowG] = useState(false);
   return (
@@ -1235,14 +1290,7 @@ function DayView({ day }) {
       {day.warningGroups && <WarningsCard groups={day.warningGroups} />}
 
       {!day.warningGroups && day.warnings?.length > 0 && (
-        <Anim>
-          <div style={{ background: T.redBg, border: `1px solid ${T.redBd}`, padding: "10px 12px", marginTop: 10 }}>
-            <Mono color={T.red} size={9} style={{ display: "block", letterSpacing: "0.1em", marginBottom: 6 }}>! ALERTS</Mono>
-            {day.warnings.map((w, i) => (
-              <div key={i} style={{ fontSize: 11, color: T.text2, lineHeight: 1.7, fontFamily: T.sans }}>▸ {w}</div>
-            ))}
-          </div>
-        </Anim>
+        <SimpleAlertsCard warnings={day.warnings} />
       )}
 
       {day.gourmet?.length > 0 && (
@@ -1289,27 +1337,26 @@ function DayView({ day }) {
 
 function ChecklistView() {
   const [ck, setCk] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem("hk_cl") || "{}");
-    } catch {
-      return {};
-    }
+    try { return JSON.parse(localStorage.getItem("hk_cl") || "{}"); }
+    catch { return {}; }
   });
+  const [openCats, setOpenCats] = useState(() => new Set(CHECKLIST.map((_, i) => i)));
   const toggle = (k) => {
     const n = { ...ck, [k]: !ck[k] };
     setCk(n);
-    try {
-      localStorage.setItem("hk_cl", JSON.stringify(n));
-    } catch {
-      // ignore
-    }
+    try { localStorage.setItem("hk_cl", JSON.stringify(n)); } catch {}
   };
+  const toggleCat = (ci) => setOpenCats(s => {
+    const n = new Set(s);
+    n.has(ci) ? n.delete(ci) : n.add(ci);
+    return n;
+  });
   const total = CHECKLIST.reduce((a, c) => a + c.items.length, 0);
   const done = Object.values(ck).filter(Boolean).length;
   return (
     <div style={{ padding: "0 16px 24px" }}>
       <Anim>
-        <div style={{ background: T.card, border: `1px solid ${T.border}`, padding: "12px 14px", marginBottom: 14, display: "flex", alignItems: "center", gap: 12 }}>
+        <div style={{ background: T.card, border: `1px solid ${T.border}`, padding: "12px 14px", marginBottom: 12, display: "flex", alignItems: "center", gap: 12 }}>
           <span style={{ fontFamily: T.mono, fontSize: 13, color: done === total ? T.yel : T.blu, fontWeight: 700, minWidth: 48 }}>
             {String(done).padStart(2,"0")}/{String(total).padStart(2,"0")}
           </span>
@@ -1321,49 +1368,80 @@ function ChecklistView() {
           )}
         </div>
       </Anim>
-      {CHECKLIST.map((cat, ci) => (
-        <Anim key={ci} delay={ci * 0.04}>
-          <div style={{ marginBottom: 16 }}>
-            <div style={{ fontFamily: T.mono, fontSize: 9, color: T.text2, letterSpacing: "0.08em", marginBottom: 6, paddingBottom: 4, borderBottom: `1px solid ${T.border}` }}>
-              ▸ {cat.cat.replace(/^\S+\s/, "").toUpperCase()}
-            </div>
-            {cat.items.map((item, ii) => {
-              const k = `${ci}-${ii}`;
-              const d = ck[k];
-              return (
-                <div
-                  key={k}
-                  onClick={() => toggle(k)}
-                  style={{
-                    background: d ? T.bluBg : T.card,
-                    opacity: d ? 0.5 : 1,
-                    border: `1px solid ${d ? T.bluBd : T.border}`,
-                    padding: "10px 12px",
-                    marginBottom: 4,
-                    display: "flex", gap: 10, alignItems: "flex-start",
-                    cursor: "pointer",
-                    transition: "all .2s",
-                  }}
-                >
-                  <div style={{
-                    width: 18, height: 18,
-                    border: `1px solid ${d ? T.blu : T.text3}`,
-                    background: d ? T.blu : "transparent",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    flexShrink: 0, transition: ".2s", marginTop: 1,
-                  }}>
-                    {d && <span style={{ color: T.bg, fontSize: 10, fontWeight: 700, fontFamily: T.mono }}>✓</span>}
-                  </div>
-                  <div>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: T.text, fontFamily: T.sans }}>{item.name}</div>
-                    <div style={{ fontSize: 11, color: T.text2, marginTop: 2, lineHeight: 1.6, fontFamily: T.sans }}>{item.sub}</div>
-                  </div>
+      {CHECKLIST.map((cat, ci) => {
+        const catOpen = openCats.has(ci);
+        const catDone = cat.items.filter((_, ii) => ck[`${ci}-${ii}`]).length;
+        return (
+          <Anim key={ci} delay={ci * 0.04}>
+            <div style={{ marginBottom: 6 }}>
+              <button
+                onClick={() => toggleCat(ci)}
+                style={{
+                  width: "100%", background: T.card, border: `1px solid ${catOpen ? T.bluBd : T.border}`,
+                  padding: "10px 14px", cursor: "pointer",
+                  display: "flex", alignItems: "center", gap: 10,
+                  fontFamily: T.mono, textAlign: "left", marginBottom: 0,
+                  transition: "border-color .2s",
+                }}
+              >
+                <div style={{ flex: 1 }}>
+                  <span style={{ fontFamily: T.mono, fontSize: 9, color: catOpen ? T.blu : T.text2, letterSpacing: "0.08em" }}>
+                    ▸ {cat.cat.replace(/^\S+\s/, "").toUpperCase()}
+                  </span>
                 </div>
-              );
-            })}
-          </div>
-        </Anim>
-      ))}
+                <span style={{ fontFamily: T.mono, fontSize: 9, color: catDone === cat.items.length ? T.yel : T.text3 }}>
+                  {catDone}/{cat.items.length}
+                </span>
+                <span style={{ fontSize: 10, color: T.text3, display: "inline-block", transition: "transform .3s", transform: catOpen ? "rotate(180deg)" : "none" }}>▾</span>
+              </button>
+              <div style={{
+                maxHeight: catOpen ? 2000 : 0, overflow: "hidden",
+                opacity: catOpen ? 1 : 0,
+                transitionProperty: "max-height, opacity",
+                transitionDuration: catOpen ? ".45s, .3s" : ".3s, .15s",
+              }}>
+                <div style={{ padding: "4px 0 8px" }}>
+                  {cat.items.map((item, ii) => {
+                    const k = `${ci}-${ii}`;
+                    const d = ck[k];
+                    return (
+                      <div
+                        key={k}
+                        onClick={() => toggle(k)}
+                        style={{
+                          background: d ? T.bluBg : T.card,
+                          opacity: d ? 0.5 : 1,
+                          border: `1px solid ${d ? T.bluBd : T.border}`,
+                          borderTop: "none",
+                          padding: "10px 12px",
+                          marginBottom: 0,
+                          display: "flex", gap: 10, alignItems: "flex-start",
+                          cursor: "pointer",
+                          transition: "all .2s",
+                        }}
+                      >
+                        <div style={{
+                          width: 18, height: 18,
+                          border: `1px solid ${d ? T.blu : T.text3}`,
+                          background: d ? T.blu : "transparent",
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                          flexShrink: 0, transition: ".2s", marginTop: 1,
+                        }}>
+                          {d && <span style={{ color: T.bg, fontSize: 10, fontWeight: 700, fontFamily: T.mono }}>✓</span>}
+                        </div>
+                        <div>
+                          <div style={{ fontSize: 13, fontWeight: 600, color: T.text, fontFamily: T.sans }}>{item.name}</div>
+                          <div style={{ fontSize: 11, color: T.text2, marginTop: 2, lineHeight: 1.6, fontFamily: T.sans }}>{item.sub}</div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </Anim>
+        );
+      })}
     </div>
   );
 }
@@ -1372,6 +1450,16 @@ function ChecklistView() {
 export default function App() {
   const [tab, setTab] = useState("day");
   const [ad, setAd] = useState(0);
+  const touchStartX = useRef(null);
+  const handleTouchStart = (e) => { touchStartX.current = e.touches[0].clientX; };
+  const handleTouchEnd = (e) => {
+    if (touchStartX.current === null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX.current;
+    touchStartX.current = null;
+    if (Math.abs(dx) < 50) return;
+    if (dx < 0) setAd(i => Math.min(i + 1, DAYS.length - 1));
+    else setAd(i => Math.max(i - 1, 0));
+  };
   return (
     <div style={{ fontFamily: T.sans, background: T.bg, minHeight: "100vh", maxWidth: 480, margin: "0 auto", color: T.text }}>
       <link
@@ -1388,21 +1476,17 @@ export default function App() {
       `}</style>
 
       {/* ─── HEADER ─── */}
-      <div style={{ background: "#050507", borderBottom: `1px solid ${T.border}`, padding: "40px 20px 28px", position: "relative", overflow: "hidden" }}>
-        <div style={{ position: "absolute", top: 16, left: 16, width: 18, height: 18, borderTop: `1px solid ${T.yel}55`, borderLeft: `1px solid ${T.yel}55` }} />
-        <div style={{ position: "absolute", top: 16, right: 16, width: 18, height: 18, borderTop: `1px solid ${T.yel}55`, borderRight: `1px solid ${T.yel}55` }} />
-        <div style={{ position: "absolute", bottom: 28, left: 16, width: 18, height: 18, borderBottom: `1px solid ${T.yel}55`, borderLeft: `1px solid ${T.yel}55` }} />
-        <div style={{ position: "absolute", bottom: 28, right: 16, width: 18, height: 18, borderBottom: `1px solid ${T.yel}55`, borderRight: `1px solid ${T.yel}55` }} />
+      <div style={{ background: "#050507", borderBottom: `1px solid ${T.border}`, padding: "36px 20px 24px", position: "relative", overflow: "hidden" }}>
+        <div style={{ position: "absolute", top: 14, left: 14, width: 18, height: 18, borderTop: `1px solid ${T.blu}55`, borderLeft: `1px solid ${T.blu}55` }} />
+        <div style={{ position: "absolute", top: 14, right: 14, width: 18, height: 18, borderTop: `1px solid ${T.blu}55`, borderRight: `1px solid ${T.blu}55` }} />
+        <div style={{ position: "absolute", bottom: 24, left: 14, width: 18, height: 18, borderBottom: `1px solid ${T.blu}55`, borderLeft: `1px solid ${T.blu}55` }} />
+        <div style={{ position: "absolute", bottom: 24, right: 14, width: 18, height: 18, borderBottom: `1px solid ${T.blu}55`, borderRight: `1px solid ${T.blu}55` }} />
         <div style={{ textAlign: "center" }}>
-          <Mono color={T.text2} size={9} style={{ display: "block", letterSpacing: "0.18em", marginBottom: 18 }}>
-            PORTER_TERMINAL · v2.026 · [ ACTIVE ]
-          </Mono>
-          <div style={{ fontFamily: T.mono, fontSize: 34, fontWeight: 700, color: T.yel, letterSpacing: "0.02em", lineHeight: 1 }}>
-            北の大地
+          <div style={{ fontFamily: T.mono, fontSize: 28, fontWeight: 700, color: T.blu, letterSpacing: "0.08em", lineHeight: 1 }}>
+            HOKKAIDO EXPEDITION
           </div>
-          <Mono color={T.text2} size={9} style={{ display: "block", letterSpacing: "0.22em", marginTop: 6 }}>HOKKAIDO EXPEDITION</Mono>
-          <div style={{ height: 1, background: T.border, margin: "16px 0" }} />
-          <Mono color={T.text2} size={9} style={{ display: "block", letterSpacing: "0.14em", marginBottom: 16 }}>2026.04.24 — 04.30</Mono>
+          <div style={{ height: 1, background: T.border, margin: "14px 0" }} />
+          <Mono color={T.text2} size={9} style={{ display: "block", letterSpacing: "0.14em", marginBottom: 14 }}>2026.04.24 — 04.30</Mono>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 6 }}>
             {[["07","DAYS"],["1540km","DRIVE"],["12.4km","TREK"],["∞","FOOD"]].map(([n, l]) => (
               <div key={l} style={{ background: "rgba(255,255,255,0.03)", border: `1px solid ${T.border}`, padding: "8px 4px", textAlign: "center" }}>
@@ -1464,7 +1548,11 @@ export default function App() {
           {(() => {
             const d = DAYS[ad];
             return (
-              <div key={d.id}>
+              <div
+                key={d.id}
+                onTouchStart={handleTouchStart}
+                onTouchEnd={handleTouchEnd}
+              >
                 <div style={{ padding: "14px 16px 12px", borderBottom: `1px solid ${T.border}`, display: "flex", alignItems: "center", gap: 14 }}>
                   <div style={{
                     width: 44, height: 44,
@@ -1477,12 +1565,24 @@ export default function App() {
                     <span style={{ fontFamily: T.mono, fontSize: 18, fontWeight: 700, color: T.yel, lineHeight: 1 }}>{String(d.id).padStart(2,"0")}</span>
                     <span style={{ fontFamily: T.mono, fontSize: 7, color: T.text3, letterSpacing: "0.1em" }}>DAY</span>
                   </div>
-                  <div>
+                  <div style={{ flex: 1 }}>
                     <div style={{ fontSize: 17, fontWeight: 700, color: T.text, fontFamily: T.sans, lineHeight: 1.3 }}>{d.title}</div>
                     <Mono color={T.text2} size={10} style={{ display: "block", marginTop: 2 }}>
                       {d.date}{d.km > 0 ? ` · ${d.km}km` : ""}
                     </Mono>
                     <Mono color={T.text3} size={9}>{d.subtitle}</Mono>
+                  </div>
+                  <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
+                    <button
+                      onClick={() => setAd(i => Math.max(i - 1, 0))}
+                      disabled={ad === 0}
+                      style={{ background: "none", border: `1px solid ${ad === 0 ? T.text3 : T.border}`, color: ad === 0 ? T.text3 : T.text2, padding: "4px 8px", fontFamily: T.mono, fontSize: 11, cursor: ad === 0 ? "default" : "pointer" }}
+                    >◀</button>
+                    <button
+                      onClick={() => setAd(i => Math.min(i + 1, DAYS.length - 1))}
+                      disabled={ad === DAYS.length - 1}
+                      style={{ background: "none", border: `1px solid ${ad === DAYS.length - 1 ? T.text3 : T.border}`, color: ad === DAYS.length - 1 ? T.text3 : T.text2, padding: "4px 8px", fontFamily: T.mono, fontSize: 11, cursor: ad === DAYS.length - 1 ? "default" : "pointer" }}
+                    >▶</button>
                   </div>
                 </div>
                 <div style={{ padding: "10px 16px 0" }}>

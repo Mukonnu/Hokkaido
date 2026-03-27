@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 
 const DAYS = [
   {
@@ -637,34 +637,41 @@ const EMER = [
 ];
 
 /* ── Design Tokens ── */
-const T = {
-  bg:        "#09090b",
-  card:      "#0f0f12",
-  card2:     "#141418",
-  border:    "rgba(255,255,255,0.06)",
-  borderMd:  "rgba(255,255,255,0.11)",
-  yel:       "#facc15",
-  yelBg:     "rgba(250,204,21,0.07)",
-  yelBd:     "rgba(250,204,21,0.22)",
-  blu:       "#60a5fa",
-  bluBg:     "rgba(96,165,250,0.07)",
-  bluBd:     "rgba(96,165,250,0.22)",
-  red:       "#ef4444",
-  redBg:     "rgba(239,68,68,0.07)",
-  redBd:     "rgba(239,68,68,0.22)",
-  text:      "#d4d4d8",
-  text2:     "#71717a",
-  text3:     "#3f3f46",
-  mono:      "'Space Mono','Fira Code','Consolas',monospace",
-  sans:      "'Inter',system-ui,-apple-system,sans-serif",
+const THEMES = {
+  ds2: {
+    bg:"#09090b", card:"#0f0f12", card2:"#141418",
+    border:"rgba(255,255,255,0.06)", borderMd:"rgba(255,255,255,0.11)",
+    yel:"#facc15", yelBg:"rgba(250,204,21,0.07)",  yelBd:"rgba(250,204,21,0.22)",
+    blu:"#60a5fa", bluBg:"rgba(96,165,250,0.07)",   bluBd:"rgba(96,165,250,0.22)",
+    red:"#ef4444", redBg:"rgba(239,68,68,0.07)",    redBd:"rgba(239,68,68,0.22)",
+    text:"#d4d4d8", text2:"#71717a", text3:"#3f3f46",
+    mono:"'Space Mono','Fira Code','Consolas',monospace",
+    sans:"'Inter',system-ui,-apple-system,sans-serif",
+    radius:0,
+  },
+  warm: {
+    bg:"#faf8f5", card:"#ffffff", card2:"#f5ede0",
+    border:"rgba(139,111,71,0.10)", borderMd:"rgba(139,111,71,0.20)",
+    yel:"#d4553a", yelBg:"rgba(212,85,58,0.05)",   yelBd:"rgba(212,85,58,0.18)",
+    blu:"#2a5a3e", bluBg:"rgba(42,90,62,0.06)",    bluBd:"rgba(42,90,62,0.18)",
+    red:"#d4553a", redBg:"rgba(212,85,58,0.04)",   redBd:"rgba(212,85,58,0.12)",
+    text:"#1a3a2a", text2:"#5c5347", text3:"#8a7f72",
+    mono:"'M PLUS Rounded 1c',sans-serif",
+    sans:"'Zen Maru Gothic',sans-serif",
+    radius:10,
+  },
 };
 
+const ThemeContext = createContext(THEMES.ds2);
+const useT = () => useContext(ThemeContext);
+
+/* ETYPE: label only — colors resolved from theme at render time */
 const ETYPE = {
-  food:  { color: T.yel, label: "PROVISIONS" },
-  spot:  { color: T.blu, label: "LOCATION"   },
-  stay:  { color: T.blu, label: "QUARTERS"   },
-  onsen: { color: T.blu, label: "FACILITY"   },
-  move:  { color: T.text2, label: "TRANSIT"  },
+  food:  "PROVISIONS",
+  spot:  "LOCATION",
+  stay:  "QUARTERS",
+  onsen: "FACILITY",
+  move:  "TRANSIT",
 };
 
 /* ── Components ── */
@@ -697,20 +704,25 @@ function Anim({ children, delay = 0 }) {
   );
 }
 
-function Mono({ children, color = T.text2, size = 9, style = {} }) {
+function Mono({ children, color, size = 9, style = {} }) {
+  const T = useT();
+  const c = color ?? T.text2;
   return (
-    <span style={{ fontFamily: T.mono, fontSize: size, color, letterSpacing: "0.08em", ...style }}>
+    <span style={{ fontFamily: T.mono, fontSize: size, color: c, letterSpacing: "0.08em", ...style }}>
       {children}
     </span>
   );
 }
 
-function Badge({ children, color = T.text2 }) {
+function Badge({ children, color }) {
+  const T = useT();
+  const c = color ?? T.text2;
   return (
     <span style={{
-      fontFamily: T.mono, fontSize: 9, color,
-      border: `1px solid ${color}44`,
+      fontFamily: T.mono, fontSize: 9, color: c,
+      border: `1px solid ${c}44`,
       padding: "1px 5px", letterSpacing: "0.07em",
+      borderRadius: T.radius / 2,
     }}>
       {children}
     </span>
@@ -718,9 +730,12 @@ function Badge({ children, color = T.text2 }) {
 }
 
 function EventCard({ ev, idx }) {
+  const T = useT();
   const [open, setOpen] = useState(false);
-  const cfg = ETYPE[ev.type] || ETYPE.move;
-  const accent = ev.important ? T.red : cfg.color;
+  const ECOLOR = { food:T.yel, spot:T.blu, stay:T.blu, onsen:T.blu, move:T.text2 };
+  const label = ETYPE[ev.type] || ETYPE.move;
+  const typeColor = ECOLOR[ev.type] || T.text2;
+  const accent = ev.important ? T.red : typeColor;
   return (
     <Anim delay={idx * 0.04}>
       <div
@@ -738,7 +753,7 @@ function EventCard({ ev, idx }) {
           <div style={{ flex: 1 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginBottom: 4 }}>
               <Mono color={accent} size={9} style={{ letterSpacing: "0.1em" }}>
-                {ev.important ? "! " : "▸ "}{cfg.label}
+                {ev.important ? "! " : "▸ "}{label}
               </Mono>
               {ev.important && <Badge color={T.red}>CRITICAL</Badge>}
               {ev.optional && <Badge color={T.text2}>OPTIONAL</Badge>}
@@ -811,6 +826,7 @@ function EventCard({ ev, idx }) {
 }
 
 function RentalCarCard({ car }) {
+  const T = useT();
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const handleCopy = (e) => {
@@ -917,6 +933,7 @@ function RentalCarCard({ car }) {
 }
 
 function WarningsCard({ groups }) {
+  const T = useT();
   const [open, setOpen] = useState(false);
   const total = groups.reduce((s, g) => s + g.items.length, 0);
   return (
@@ -994,6 +1011,7 @@ function WarningsCard({ groups }) {
 }
 
 function BikeRentalCard({ rental }) {
+  const T = useT();
   const [open, setOpen] = useState(false);
   return (
     <Anim>
@@ -1057,6 +1075,7 @@ function BikeRentalCard({ rental }) {
 }
 
 function FlightsCard({ flights }) {
+  const T = useT();
   const [open, setOpen] = useState(false);
   const summary = [
     flights.outbound && flights.outbound.flight,
@@ -1137,6 +1156,7 @@ function FlightsCard({ flights }) {
 }
 
 function SimpleAlertsCard({ warnings }) {
+  const T = useT();
   const [open, setOpen] = useState(false);
   return (
     <Anim>
@@ -1184,6 +1204,7 @@ function SimpleAlertsCard({ warnings }) {
 }
 
 function DayView({ day }) {
+  const T = useT();
   const [showG, setShowG] = useState(false);
   return (
     <div style={{ paddingBottom: 24 }}>
@@ -1336,6 +1357,7 @@ function DayView({ day }) {
 }
 
 function ChecklistView() {
+  const T = useT();
   const [ck, setCk] = useState(() => {
     try { return JSON.parse(localStorage.getItem("hk_cl") || "{}"); }
     catch { return {}; }
@@ -1450,6 +1472,16 @@ function ChecklistView() {
 export default function App() {
   const [tab, setTab] = useState("day");
   const [ad, setAd] = useState(0);
+  const [isDark, setIsDark] = useState(() => {
+    try { return localStorage.getItem("hk_theme") !== "warm"; }
+    catch { return true; }
+  });
+  const T = isDark ? THEMES.ds2 : THEMES.warm;
+  const toggleTheme = () => setIsDark(d => {
+    const next = !d;
+    try { localStorage.setItem("hk_theme", next ? "ds2" : "warm"); } catch {}
+    return next;
+  });
   const touchStartX = useRef(null);
   const handleTouchStart = (e) => { touchStartX.current = e.touches[0].clientX; };
   const handleTouchEnd = (e) => {
@@ -1461,9 +1493,10 @@ export default function App() {
     else setAd(i => Math.max(i - 1, 0));
   };
   return (
+    <ThemeContext.Provider value={T}>
     <div style={{ fontFamily: T.sans, background: T.bg, minHeight: "100vh", maxWidth: 480, margin: "0 auto", color: T.text }}>
       <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&family=Zen+Maru+Gothic:wght@400;500;700&family=Kaisei+Decol:wght@400;700&family=M+PLUS+Rounded+1c:wght@400;500;700&display=swap"
         rel="stylesheet"
       />
       <style>{`
@@ -1476,34 +1509,53 @@ export default function App() {
       `}</style>
 
       {/* ─── HEADER ─── */}
-      <div style={{ background: "#050507", borderBottom: `1px solid ${T.border}`, padding: "36px 20px 24px", position: "relative", overflow: "hidden" }}>
-        <div style={{ position: "absolute", top: 14, left: 14, width: 18, height: 18, borderTop: `1px solid ${T.blu}55`, borderLeft: `1px solid ${T.blu}55` }} />
-        <div style={{ position: "absolute", top: 14, right: 14, width: 18, height: 18, borderTop: `1px solid ${T.blu}55`, borderRight: `1px solid ${T.blu}55` }} />
-        <div style={{ position: "absolute", bottom: 24, left: 14, width: 18, height: 18, borderBottom: `1px solid ${T.blu}55`, borderLeft: `1px solid ${T.blu}55` }} />
-        <div style={{ position: "absolute", bottom: 24, right: 14, width: 18, height: 18, borderBottom: `1px solid ${T.blu}55`, borderRight: `1px solid ${T.blu}55` }} />
-        <div style={{ textAlign: "center" }}>
-          <div style={{ fontFamily: T.mono, fontSize: 28, fontWeight: 700, color: T.blu, letterSpacing: "0.08em", lineHeight: 1 }}>
-            HOKKAIDO EXPEDITION
+      {isDark ? (
+        /* DS2 header */
+        <div style={{ background: "#050507", borderBottom: `1px solid ${T.border}`, padding: "36px 20px 24px", position: "relative", overflow: "hidden" }}>
+          <div style={{ position: "absolute", top: 14, left: 14, width: 18, height: 18, borderTop: `1px solid ${T.blu}55`, borderLeft: `1px solid ${T.blu}55` }} />
+          <div style={{ position: "absolute", top: 14, right: 14, width: 18, height: 18, borderTop: `1px solid ${T.blu}55`, borderRight: `1px solid ${T.blu}55` }} />
+          <div style={{ position: "absolute", bottom: 24, left: 14, width: 18, height: 18, borderBottom: `1px solid ${T.blu}55`, borderLeft: `1px solid ${T.blu}55` }} />
+          <div style={{ position: "absolute", bottom: 24, right: 14, width: 18, height: 18, borderBottom: `1px solid ${T.blu}55`, borderRight: `1px solid ${T.blu}55` }} />
+          <div style={{ textAlign: "center" }}>
+            <div style={{ fontFamily: T.mono, fontSize: 28, fontWeight: 700, color: T.blu, letterSpacing: "0.08em", lineHeight: 1 }}>
+              HOKKAIDO EXPEDITION
+            </div>
+            <div style={{ height: 1, background: T.border, margin: "14px 0" }} />
+            <Mono color={T.text2} size={9} style={{ display: "block", letterSpacing: "0.14em", marginBottom: 14 }}>2026.04.24 — 04.30</Mono>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 6 }}>
+              {[["07","DAYS"],["1540km","DRIVE"],["12.4km","TREK"],["∞","FOOD"]].map(([n, l]) => (
+                <div key={l} style={{ background: "rgba(255,255,255,0.03)", border: `1px solid ${T.border}`, padding: "8px 4px", textAlign: "center" }}>
+                  <div style={{ fontFamily: T.mono, fontSize: 13, fontWeight: 700, color: T.text }}>{n}</div>
+                  <div style={{ fontFamily: T.mono, fontSize: 7, color: T.text3, letterSpacing: "0.1em", marginTop: 2 }}>{l}</div>
+                </div>
+              ))}
+            </div>
           </div>
-          <div style={{ height: 1, background: T.border, margin: "14px 0" }} />
-          <Mono color={T.text2} size={9} style={{ display: "block", letterSpacing: "0.14em", marginBottom: 14 }}>2026.04.24 — 04.30</Mono>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 6 }}>
-            {[["07","DAYS"],["1540km","DRIVE"],["12.4km","TREK"],["∞","FOOD"]].map(([n, l]) => (
-              <div key={l} style={{ background: "rgba(255,255,255,0.03)", border: `1px solid ${T.border}`, padding: "8px 4px", textAlign: "center" }}>
-                <div style={{ fontFamily: T.mono, fontSize: 13, fontWeight: 700, color: T.text }}>{n}</div>
-                <div style={{ fontFamily: T.mono, fontSize: 7, color: T.text3, letterSpacing: "0.1em", marginTop: 2 }}>{l}</div>
+        </div>
+      ) : (
+        /* Warm header */
+        <div style={{ background: "linear-gradient(175deg,#0f2419 0%,#1a3a2a 40%,#2a5a3e 70%,#3d7a5a 100%)", padding: "48px 24px 32px", textAlign: "center", position: "relative", overflow: "hidden" }}>
+          <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 36, background: T.bg, clipPath: "polygon(0 60%,30% 30%,55% 50%,80% 20%,100% 45%,100% 100%,0 100%)" }} />
+          <div style={{ fontSize: 10, letterSpacing: 4, color: "#a8d8ea", marginBottom: 12, fontFamily: T.sans }}>2026.04.24 — 04.30</div>
+          <div style={{ fontFamily: "'Kaisei Decol',serif", fontSize: 40, fontWeight: 700, color: "#fff", lineHeight: 1.1, textShadow: "0 4px 24px rgba(0,0,0,.3)" }}>北の大地</div>
+          <div style={{ fontFamily: "'Kaisei Decol',serif", fontSize: 13, color: "#a8d8ea", marginTop: 6 }}>歩く・走る・食う — 6泊7日</div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 8, marginTop: 20 }}>
+            {[["7","DAYS"],["1,540km","DRIVE"],["12.4km","TREK"],["∞","FOOD"]].map(([n, l]) => (
+              <div key={l} style={{ background: "rgba(255,255,255,.08)", border: "1px solid rgba(255,255,255,.12)", borderRadius: 10, padding: "8px 4px", textAlign: "center" }}>
+                <div style={{ fontFamily: T.mono, fontSize: 14, fontWeight: 700, color: "#fff" }}>{n}</div>
+                <div style={{ fontSize: 8, color: "#a8d8ea", letterSpacing: 2, marginTop: 2, fontFamily: T.sans }}>{l}</div>
               </div>
             ))}
           </div>
         </div>
-      </div>
+      )}
 
       {/* ─── TAB BAR ─── */}
       <div style={{ display: "flex", background: T.card, borderBottom: `1px solid ${T.border}`, position: "sticky", top: 0, zIndex: 100 }}>
         {[
-          ["day",   "ITINERARY"],
-          ["check", "CARGO"],
-          ["tips",  "ALERTS"],
+          ["day",   isDark ? "ITINERARY" : "📋 行程"],
+          ["check", isDark ? "CARGO"     : "✅ 持ち物"],
+          ["tips",  isDark ? "ALERTS"    : "⚠ 注意"],
         ].map(([id, lb]) => (
           <button
             key={id}
@@ -1511,7 +1563,7 @@ export default function App() {
             style={{
               flex: 1, padding: "11px 0",
               border: "none", background: "none",
-              fontFamily: T.mono, fontSize: 9, letterSpacing: "0.12em", fontWeight: 700,
+              fontFamily: T.mono, fontSize: isDark ? 9 : 11, letterSpacing: isDark ? "0.12em" : 0, fontWeight: 700,
               color: tab === id ? T.yel : T.text3,
               borderBottom: tab === id ? `2px solid ${T.yel}` : "2px solid transparent",
               cursor: "pointer", transition: ".2s",
@@ -1520,6 +1572,22 @@ export default function App() {
             {lb}
           </button>
         ))}
+        {/* ─── THEME TOGGLE ─── */}
+        <button
+          onClick={toggleTheme}
+          title={isDark ? "ウォームテーマに切り替え" : "DS2テーマに切り替え"}
+          style={{
+            padding: "0 12px",
+            border: "none", background: "none",
+            borderLeft: `1px solid ${T.border}`,
+            borderBottom: "2px solid transparent",
+            color: T.text2, cursor: "pointer",
+            fontSize: 14, lineHeight: 1,
+            flexShrink: 0,
+          }}
+        >
+          {isDark ? "☀" : "◐"}
+        </button>
       </div>
 
       {/* ─── ITINERARY TAB ─── */}
@@ -1655,10 +1723,8 @@ export default function App() {
         <Mono color={T.text3} size={8} style={{ display: "block", marginTop: 6, letterSpacing: "0.1em" }}>[ TERMINAL_EOF ]</Mono>
       </div>
     </div>
+    </ThemeContext.Provider>
   );
 }
-
-
-
 
 

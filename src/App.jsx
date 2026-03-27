@@ -636,6 +636,37 @@ const EMER = [
   { l: "道路情報", v: "011-709-2311" },
 ];
 
+/* ── Design Tokens ── */
+const T = {
+  bg:        "#09090b",
+  card:      "#0f0f12",
+  card2:     "#141418",
+  border:    "rgba(255,255,255,0.06)",
+  borderMd:  "rgba(255,255,255,0.11)",
+  yel:       "#facc15",
+  yelBg:     "rgba(250,204,21,0.07)",
+  yelBd:     "rgba(250,204,21,0.22)",
+  blu:       "#60a5fa",
+  bluBg:     "rgba(96,165,250,0.07)",
+  bluBd:     "rgba(96,165,250,0.22)",
+  red:       "#ef4444",
+  redBg:     "rgba(239,68,68,0.07)",
+  redBd:     "rgba(239,68,68,0.22)",
+  text:      "#d4d4d8",
+  text2:     "#71717a",
+  text3:     "#3f3f46",
+  mono:      "'Space Mono','Fira Code','Consolas',monospace",
+  sans:      "'Inter',system-ui,-apple-system,sans-serif",
+};
+
+const ETYPE = {
+  food:  { color: T.yel, label: "PROVISIONS" },
+  spot:  { color: T.blu, label: "LOCATION"   },
+  stay:  { color: T.blu, label: "QUARTERS"   },
+  onsen: { color: T.blu, label: "FACILITY"   },
+  move:  { color: T.text2, label: "TRANSIT"  },
+};
+
 /* ── Components ── */
 function Anim({ children, delay = 0 }) {
   const r = useRef(null);
@@ -645,12 +676,9 @@ function Anim({ children, delay = 0 }) {
     if (!el) return;
     const o = new IntersectionObserver(
       ([e]) => {
-        if (e.isIntersecting) {
-          setV(true);
-          o.disconnect();
-        }
+        if (e.isIntersecting) { setV(true); o.disconnect(); }
       },
-      { threshold: 0.1 },
+      { threshold: 0.05 },
     );
     o.observe(el);
     return () => o.disconnect();
@@ -660,8 +688,8 @@ function Anim({ children, delay = 0 }) {
       ref={r}
       style={{
         opacity: v ? 1 : 0,
-        transform: v ? "translateY(0)" : "translateY(18px)",
-        transition: `opacity .5s cubic-bezier(.4,0,.2,1) ${delay}s, transform .5s cubic-bezier(.4,0,.2,1) ${delay}s`,
+        transform: v ? "translateY(0)" : "translateY(10px)",
+        transition: `opacity .4s ease ${delay}s, transform .4s ease ${delay}s`,
       }}
     >
       {children}
@@ -669,88 +697,105 @@ function Anim({ children, delay = 0 }) {
   );
 }
 
+function Mono({ children, color = T.text2, size = 9, style = {} }) {
+  return (
+    <span style={{ fontFamily: T.mono, fontSize: size, color, letterSpacing: "0.08em", ...style }}>
+      {children}
+    </span>
+  );
+}
+
+function Badge({ children, color = T.text2 }) {
+  return (
+    <span style={{
+      fontFamily: T.mono, fontSize: 9, color,
+      border: `1px solid ${color}44`,
+      padding: "1px 5px", letterSpacing: "0.07em",
+    }}>
+      {children}
+    </span>
+  );
+}
+
 function EventCard({ ev, idx }) {
   const [open, setOpen] = useState(false);
-  const c = { food: "#d4553a", spot: "#5ba4c9", stay: "#9b7ec8", onsen: "#2a5a3e", move: "#8a7f72" }[ev.type] || "#ccc";
+  const cfg = ETYPE[ev.type] || ETYPE.move;
+  const accent = ev.important ? T.red : cfg.color;
   return (
-    <Anim delay={idx * 0.06}>
+    <Anim delay={idx * 0.04}>
       <div
         onClick={() => setOpen(!open)}
         style={{
-          borderLeft: `3px solid ${c}`,
-          background: "#fff",
-          borderRadius: 12,
+          borderLeft: `2px solid ${accent}`,
+          background: open ? T.card2 : T.card,
           padding: "10px 14px",
-          marginTop: 6,
+          marginTop: 3,
           cursor: "pointer",
-          transition: "all .35s cubic-bezier(.4,0,.2,1)",
-          boxShadow: open ? "0 6px 24px rgba(0,0,0,.09)" : "0 1px 4px rgba(0,0,0,.03)",
-          transform: open ? "scale(1.008)" : "scale(1)",
+          transition: "background .15s",
         }}
       >
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
           <div style={{ flex: 1 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-              <span style={{ fontWeight: 700, fontSize: 14, color: "#1a3a2a" }}>{ev.title}</span>
-              {ev.important && (
-                <span
-                  style={{
-                    fontSize: 9,
-                    background: "#d4553a",
-                    color: "#fff",
-                    padding: "2px 7px",
-                    borderRadius: 6,
-                    fontWeight: 700,
-                    animation: "pulse 2s infinite",
-                  }}
-                >
-                  必須
-                </span>
-              )}
-              {ev.optional && (
-                <span style={{ fontSize: 9, background: "#ede6d8", color: "#8a7f72", padding: "2px 7px", borderRadius: 6 }}>
-                  余裕あれば
-                </span>
-              )}
+            <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginBottom: 4 }}>
+              <Mono color={accent} size={9} style={{ letterSpacing: "0.1em" }}>
+                {ev.important ? "! " : "▸ "}{cfg.label}
+              </Mono>
+              {ev.important && <Badge color={T.red}>CRITICAL</Badge>}
+              {ev.optional && <Badge color={T.text2}>OPTIONAL</Badge>}
+            </div>
+            <div style={{ fontSize: 14, fontWeight: 600, color: ev.type === "food" ? T.yel : T.text, fontFamily: T.sans, lineHeight: 1.3 }}>
+              {ev.title}
             </div>
             {ev.tags && (
-              <div style={{ display: "flex", gap: 4, marginTop: 3, flexWrap: "wrap" }}>
-                {ev.tags.map((t) => (
-                  <span key={t} style={{ fontSize: 9, color: c, background: `${c}14`, padding: "1px 6px", borderRadius: 6, fontWeight: 600 }}>
-                    {t}
-                  </span>
-                ))}
+              <div style={{ display: "flex", gap: 4, marginTop: 5, flexWrap: "wrap" }}>
+                {ev.tags.map((t) => <Badge key={t} color={accent}>{t}</Badge>)}
               </div>
             )}
           </div>
           <div style={{ textAlign: "right", flexShrink: 0 }}>
-            <span style={{ fontSize: 11, color: "#8a7f72", fontFamily: "'M PLUS Rounded 1c'", fontWeight: 700 }}>{ev.time}</span>
-            <span style={{ fontSize: 14, color: c, display: "inline-block", transition: "transform .3s", transform: open ? "rotate(180deg)" : "none", lineHeight: 1, marginTop: 2 }}>▾</span>
+            <div style={{ fontFamily: T.mono, fontSize: 11, color: T.text2 }}>{ev.time}</div>
+            <div style={{ fontSize: 10, color: T.text3, marginTop: 2, transition: "transform .3s", transform: open ? "rotate(180deg)" : "none", display: "inline-block" }}>▾</div>
           </div>
         </div>
-        <div
-          style={{
-            maxHeight: open ? 2000 : 0,
-            overflow: "hidden",
-            transition: "max-height .5s cubic-bezier(.4,0,.2,1)",
-            opacity: open ? 1 : 0,
-            transitionProperty: "max-height, opacity",
-            transitionDuration: open ? ".5s, .3s" : ".3s, .2s",
-          }}
-        >
-          <div style={{ paddingTop: 10, fontSize: 13, color: "#5c5347", lineHeight: 1.8, whiteSpace: "pre-line" }}>{ev.desc}</div>
-          {(ev.price || ev.hours || ev.tel || ev.addr) && (
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8, fontSize: 11 }}>
-              {ev.price && <span style={{ background: "#faf8f5", padding: "3px 8px", borderRadius: 8 }}>💰 {ev.price}</span>}
-              {ev.hours && <span style={{ background: "#faf8f5", padding: "3px 8px", borderRadius: 8 }}>🕐 {ev.hours}</span>}
-              {ev.addr && <span style={{ background: "#faf8f5", padding: "3px 8px", borderRadius: 8 }}>📍 {ev.addr}</span>}
-              {ev.tel && (
-                <a href={`tel:${ev.tel}`} style={{ background: "#2a5a3e10", padding: "3px 8px", borderRadius: 8, color: "#2a5a3e", textDecoration: "none", fontWeight: 600 }}>
-                  📞 {ev.tel}
-                </a>
-              )}
-            </div>
-          )}
+        <div style={{
+          maxHeight: open ? 2000 : 0, overflow: "hidden",
+          opacity: open ? 1 : 0,
+          transitionProperty: "max-height, opacity",
+          transitionDuration: open ? ".5s, .3s" : ".3s, .2s",
+        }}>
+          <div style={{ marginTop: 10, paddingTop: 10, borderTop: `1px solid ${T.border}` }}>
+            <div style={{ fontSize: 12, color: T.text2, lineHeight: 1.9, whiteSpace: "pre-line", fontFamily: T.sans }}>{ev.desc}</div>
+            {(ev.price || ev.hours || ev.tel || ev.addr) && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 5, marginTop: 10, padding: "8px 10px", background: T.bg, border: `1px solid ${T.border}` }}>
+                {ev.price && (
+                  <div style={{ display: "flex", gap: 10 }}>
+                    <Mono color={T.text3} size={9} style={{ width: 48, flexShrink: 0 }}>COST</Mono>
+                    <Mono color={T.yel} size={10}>{ev.price}</Mono>
+                  </div>
+                )}
+                {ev.hours && (
+                  <div style={{ display: "flex", gap: 10 }}>
+                    <Mono color={T.text3} size={9} style={{ width: 48, flexShrink: 0 }}>HOURS</Mono>
+                    <Mono color={T.text} size={10}>{ev.hours}</Mono>
+                  </div>
+                )}
+                {ev.addr && (
+                  <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+                    <Mono color={T.text3} size={9} style={{ width: 48, flexShrink: 0 }}>ADDR</Mono>
+                    <span style={{ fontSize: 10, color: T.text2, fontFamily: T.sans, lineHeight: 1.5 }}>{ev.addr}</span>
+                  </div>
+                )}
+                {ev.tel && (
+                  <a href={`tel:${ev.tel}`} style={{ textDecoration: "none" }} onClick={e => e.stopPropagation()}>
+                    <div style={{ display: "flex", gap: 10 }}>
+                      <Mono color={T.text3} size={9} style={{ width: 48, flexShrink: 0 }}>TEL</Mono>
+                      <Mono color={T.blu} size={10}>{ev.tel}</Mono>
+                    </div>
+                  </a>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </Anim>
@@ -768,112 +813,93 @@ function RentalCarCard({ car }) {
   };
   return (
     <Anim>
-      <div
-        style={{
-          background: open ? "linear-gradient(135deg,#e8f4ea,#f5faf6)" : "linear-gradient(135deg,rgba(42,90,62,.06),#faf8f5)",
-          border: "1px solid rgba(42,90,62,.18)",
-          borderRadius: 12,
-          marginBottom: 10,
-          overflow: "hidden",
-          transition: "all .35s cubic-bezier(.4,0,.2,1)",
-          boxShadow: open ? "0 4px 16px rgba(42,90,62,.1)" : "0 1px 4px rgba(0,0,0,.03)",
-        }}
-      >
+      <div style={{
+        border: `1px solid ${open ? T.bluBd : T.border}`,
+        background: T.card,
+        marginBottom: 8,
+        overflow: "hidden",
+        transition: "border-color .2s",
+      }}>
         <button
           onClick={() => setOpen(!open)}
           style={{
-            width: "100%",
-            background: "none",
-            border: "none",
-            padding: "10px 12px",
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            gap: 10,
-            fontFamily: "inherit",
-            textAlign: "left",
+            width: "100%", background: "none", border: "none",
+            padding: "12px 14px", cursor: "pointer",
+            display: "flex", alignItems: "center", gap: 12,
+            fontFamily: T.sans, textAlign: "left",
           }}
         >
-          <span style={{ fontSize: 20 }}>🚗</span>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 10, color: "#8a7f72", fontWeight: 500 }}>レンタカー予約</div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#1a3a2a" }}>{car.company}</div>
+          <div style={{ width: 32, height: 32, background: T.bluBg, border: `1px solid ${T.bluBd}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <span style={{ fontSize: 14 }}>🚗</span>
           </div>
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 3 }}>
+          <div style={{ flex: 1 }}>
+            <Mono color={T.blu} size={9} style={{ letterSpacing: "0.1em", display: "block", marginBottom: 3 }}>▸ VEHICLE_RENTAL</Mono>
+            <div style={{ fontSize: 13, fontWeight: 600, color: T.text, fontFamily: T.sans }}>{car.company}</div>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}>
             <span
               onClick={handleCopy}
               style={{
-                fontSize: 10, color: "#2a5a3e", fontWeight: 700,
-                background: copied ? "rgba(42,90,62,.22)" : "rgba(42,90,62,.1)",
-                padding: "2px 7px", borderRadius: 6, cursor: "pointer",
-                transition: "background .2s", userSelect: "none",
+                fontFamily: T.mono, fontSize: 9,
+                color: copied ? T.yel : T.blu,
+                border: `1px solid ${copied ? T.yelBd : T.bluBd}`,
+                padding: "2px 6px", cursor: "pointer", transition: "all .2s",
               }}
             >
-              {copied ? "✓ コピー済み" : car.reservationNo}
+              {copied ? "✓ COPIED" : car.reservationNo}
             </span>
-            <span style={{ fontSize: 14, color: "#2a5a3e", display: "inline-block", transition: "transform .3s", transform: open ? "rotate(180deg)" : "none", lineHeight: 1 }}>▾</span>
+            <span style={{ fontSize: 10, color: T.text3, display: "inline-block", transition: "transform .3s", transform: open ? "rotate(180deg)" : "none" }}>▾</span>
           </div>
         </button>
-        <div
-          style={{
-            maxHeight: open ? 1000 : 0,
-            overflow: "hidden",
-            opacity: open ? 1 : 0,
-            transitionProperty: "max-height, opacity",
-            transitionDuration: open ? ".45s, .3s" : ".3s, .15s",
-            transitionTimingFunction: "cubic-bezier(.4,0,.2,1)",
-          }}
-        >
-          <div style={{ padding: "0 12px 12px", borderTop: "1px solid rgba(42,90,62,.08)" }}>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, marginTop: 10 }}>
+        <div style={{
+          maxHeight: open ? 1000 : 0, overflow: "hidden",
+          opacity: open ? 1 : 0,
+          transitionProperty: "max-height, opacity",
+          transitionDuration: open ? ".45s, .3s" : ".3s, .15s",
+        }}>
+          <div style={{ borderTop: `1px solid ${T.border}`, padding: "12px 14px" }}>
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 10 }}>
+              <span style={{ fontFamily: T.mono, fontSize: 9, color: T.blu, border: `1px solid ${T.bluBd}`, padding: "2px 8px" }}>[ RESERVE_COMPLETE ]</span>
+              <span style={{ fontFamily: T.mono, fontSize: 9, color: T.yel, border: `1px solid ${T.yelBd}`, padding: "2px 8px" }}>[ ANSHIN_ENROLLED ]</span>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
               {[
-                ["📅 貸出", `${car.pickup}\n${car.pickupNote}`],
-                ["📅 返却", car.dropoff],
-                ["👤 予約者", car.reservedBy],
-                ["💰 料金", car.price],
+                ["PICKUP", `${car.pickup}\n${car.pickupNote}`],
+                ["RETURN", car.dropoff],
+                ["DRIVER", car.reservedBy],
+                ["COST",   car.price],
               ].map(([label, value]) => (
-                <div key={label} style={{ background: "rgba(255,255,255,.75)", borderRadius: 8, padding: "8px 10px", border: "1px solid rgba(42,90,62,.08)" }}>
-                  <div style={{ fontSize: 10, color: "#8a7f72", marginBottom: 2 }}>{label}</div>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: "#1a3a2a", whiteSpace: "pre-line", lineHeight: 1.5 }}>{value}</div>
+                <div key={label} style={{ background: T.bg, border: `1px solid ${T.border}`, padding: "8px 10px" }}>
+                  <Mono color={T.text3} size={9} style={{ display: "block", marginBottom: 4, letterSpacing: "0.06em" }}>{label}</Mono>
+                  <Mono color={T.text} size={10} style={{ whiteSpace: "pre-line", lineHeight: 1.5 }}>{value}</Mono>
                 </div>
               ))}
             </div>
-            <div style={{ marginTop: 6, background: "rgba(255,255,255,.75)", borderRadius: 8, padding: "8px 10px", border: "1px solid rgba(42,90,62,.08)" }}>
-              <div style={{ fontSize: 10, color: "#8a7f72", marginBottom: 2 }}>🛡 補償</div>
-              <div style={{ fontSize: 12, fontWeight: 600, color: "#1a3a2a" }}>{car.insurance}</div>
+            <div style={{ marginTop: 6, background: T.bluBg, border: `1px solid ${T.bluBd}`, padding: "8px 10px" }}>
+              <Mono color={T.text3} size={9} style={{ display: "block", marginBottom: 3, letterSpacing: "0.06em" }}>INSURANCE</Mono>
+              <div style={{ fontSize: 11, color: T.blu, fontFamily: T.sans }}>{car.insurance}</div>
             </div>
             {car.addr && (
-              <div style={{ marginTop: 6, background: "rgba(255,255,255,.75)", borderRadius: 8, padding: "8px 10px", border: "1px solid rgba(42,90,62,.08)" }}>
-                <div style={{ fontSize: 10, color: "#8a7f72", marginBottom: 2 }}>📍 店舗住所</div>
-                <div style={{ fontSize: 12, fontWeight: 600, color: "#1a3a2a" }}>{car.addr}</div>
+              <div style={{ marginTop: 6, background: T.bg, border: `1px solid ${T.border}`, padding: "8px 10px" }}>
+                <Mono color={T.text3} size={9} style={{ display: "block", marginBottom: 3, letterSpacing: "0.06em" }}>LOCATION</Mono>
+                <div style={{ fontSize: 11, color: T.text2, fontFamily: T.sans }}>{car.addr}</div>
               </div>
             )}
-            <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 5 }}>
+            <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 4 }}>
               {car.notes.map((note, i) => (
-                <div key={i} style={{ fontSize: 12, color: "#5c5347", lineHeight: 1.7, background: "rgba(212,85,58,.04)", border: "1px solid rgba(212,85,58,.12)", borderRadius: 8, padding: "7px 10px" }}>
-                  ⚠ {note}
+                <div key={i} style={{ fontSize: 11, color: T.text2, lineHeight: 1.7, background: T.redBg, border: `1px solid ${T.redBd}`, padding: "7px 10px", fontFamily: T.sans }}>
+                  <Mono color={T.red} size={9}>! </Mono>{note}
                 </div>
               ))}
             </div>
-            <a
-              href={`tel:${car.tel}`}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 6,
-                marginTop: 10,
-                padding: "9px",
-                background: "#2a5a3e",
-                color: "#fff",
-                borderRadius: 10,
-                textDecoration: "none",
-                fontSize: 13,
-                fontWeight: 700,
-                fontFamily: "inherit",
-              }}
-            >
-              📞 {car.tel}（到着後に電話）
+            <a href={`tel:${car.tel}`} style={{
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+              marginTop: 10, padding: "10px",
+              background: T.bluBg, border: `1px solid ${T.bluBd}`,
+              color: T.blu, textDecoration: "none",
+              fontFamily: T.mono, fontSize: 11, letterSpacing: "0.05em",
+            }}>
+              ▶ CALL {car.tel}
             </a>
           </div>
         </div>
@@ -887,77 +913,71 @@ function WarningsCard({ groups }) {
   const total = groups.reduce((s, g) => s + g.items.length, 0);
   return (
     <Anim>
-      <div
-        style={{
-          border: "1px solid rgba(212,85,58,.18)",
-          borderRadius: 12,
-          marginTop: 12,
-          overflow: "hidden",
-          transition: "all .35s cubic-bezier(.4,0,.2,1)",
-          background: open ? "rgba(212,85,58,.03)" : "transparent",
-          boxShadow: open ? "0 4px 16px rgba(212,85,58,.07)" : "none",
-        }}
-      >
-        <button
-          onClick={() => setOpen(!open)}
-          style={{
-            width: "100%", background: "none", border: "none",
-            padding: "10px 14px", cursor: "pointer",
-            display: "flex", alignItems: "center", gap: 8,
-            fontFamily: "inherit", textAlign: "left",
-          }}
-        >
-          <span style={{ fontSize: 16 }}>⚠️</span>
-          <div style={{ flex: 1 }}>
-            <span style={{ fontSize: 13, fontWeight: 700, color: "#d4553a" }}>注意事項・コース情報</span>
-            <span style={{ fontSize: 11, color: "#8a7f72", marginLeft: 6 }}>{total}件</span>
+      <div style={{
+        border: `1px solid ${open ? T.redBd : T.border}`,
+        background: T.card,
+        marginTop: 10,
+        overflow: "hidden",
+        transition: "border-color .2s",
+      }}>
+        <button onClick={() => setOpen(!open)} style={{
+          width: "100%", background: "none", border: "none",
+          padding: "12px 14px", cursor: "pointer",
+          display: "flex", alignItems: "center", gap: 10,
+          fontFamily: T.sans, textAlign: "left",
+        }}>
+          <div style={{ width: 28, height: 28, background: T.redBg, border: `1px solid ${T.redBd}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <Mono color={T.red} size={11} style={{ fontWeight: 700 }}>!</Mono>
           </div>
-          <span style={{ fontSize: 14, color: "#d4553a", display: "inline-block", transition: "transform .3s", transform: open ? "rotate(180deg)" : "none", lineHeight: 1 }}>▾</span>
+          <div style={{ flex: 1 }}>
+            <Mono color={T.red} size={9} style={{ display: "block", letterSpacing: "0.1em", marginBottom: 2 }}>! WARNINGS</Mono>
+            <div style={{ fontSize: 12, color: T.text, fontFamily: T.sans }}>注意事項・コース情報</div>
+          </div>
+          <Mono color={T.text3} size={10}>{total}件</Mono>
+          <span style={{ fontSize: 10, color: T.text3, display: "inline-block", transition: "transform .3s", transform: open ? "rotate(180deg)" : "none" }}>▾</span>
         </button>
-        <div
-          style={{
-            maxHeight: open ? 2000 : 0, overflow: "hidden",
-            opacity: open ? 1 : 0,
-            transitionProperty: "max-height, opacity",
-            transitionDuration: open ? ".45s, .3s" : ".3s, .15s",
-            transitionTimingFunction: "cubic-bezier(.4,0,.2,1)",
-          }}
-        >
-          <div style={{ padding: "0 12px 14px", display: "flex", flexDirection: "column", gap: 10 }}>
-            {groups.map((group, gi) => (
-              <div key={gi}>
-                <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 5, borderTop: gi > 0 ? "1px solid rgba(139,111,71,.08)" : "none", paddingTop: gi > 0 ? 10 : 4 }}>
-                  <span style={{ fontSize: 13 }}>{group.icon}</span>
-                  <span style={{ fontSize: 11, fontWeight: 700, color: group.accent, letterSpacing: 0.5 }}>{group.title}</span>
+        <div style={{
+          maxHeight: open ? 2000 : 0, overflow: "hidden",
+          opacity: open ? 1 : 0,
+          transitionProperty: "max-height, opacity",
+          transitionDuration: open ? ".45s, .3s" : ".3s, .15s",
+        }}>
+          <div style={{ borderTop: `1px solid ${T.border}`, padding: "12px 14px", display: "flex", flexDirection: "column", gap: 10 }}>
+            {groups.map((group, gi) => {
+              const gc = group.accent === "#d4553a" ? T.red : group.accent === "#5ba4c9" ? T.blu : T.text2;
+              return (
+                <div key={gi}>
+                  {gi > 0 && <div style={{ height: 1, background: T.border, marginBottom: 10 }} />}
+                  <Mono color={gc} size={9} style={{ display: "block", letterSpacing: "0.08em", marginBottom: 6 }}>▸ {group.title.toUpperCase()}</Mono>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                    {group.items.map((item, ii) => (
+                      <div key={ii} style={{ display: "flex", gap: 8, alignItems: "flex-start", background: T.bg, border: `1px solid ${T.border}`, padding: "7px 10px" }}>
+                        <Mono color={T.text3} size={9} style={{ flexShrink: 0, marginTop: 2 }}>▸</Mono>
+                        <span style={{ fontSize: 11, color: T.text2, lineHeight: 1.7, flex: 1, fontFamily: T.sans }}>
+                          {item.text}
+                          {item.url && (
+                            <a href={item.url} target="_blank" rel="noopener noreferrer"
+                              style={{ marginLeft: 4, color: T.blu, fontWeight: 600, textDecoration: "none" }}
+                              onClick={e => e.stopPropagation()}
+                            >
+                              {item.urlLabel} ↗
+                            </a>
+                          )}
+                          {item.tel && (
+                            <a href={`tel:${item.tel}`}
+                              style={{ marginLeft: 4, color: T.blu, fontFamily: T.mono, fontSize: 10, textDecoration: "none" }}
+                              onClick={e => e.stopPropagation()}
+                            >
+                              {item.telLabel}
+                            </a>
+                          )}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                  {group.items.map((item, ii) => (
-                    <div key={ii} style={{ display: "flex", gap: 7, alignItems: "flex-start", background: "rgba(255,255,255,.7)", borderRadius: 8, padding: "7px 10px", border: `1px solid ${group.accent}18` }}>
-                      <span style={{ fontSize: 11, color: group.accent, flexShrink: 0, marginTop: 1 }}>▸</span>
-                      <span style={{ fontSize: 12, color: "#5c5347", lineHeight: 1.65, flex: 1 }}>
-                        {item.text}
-                        {item.url && (
-                          <a href={item.url} target="_blank" rel="noopener noreferrer"
-                            style={{ marginLeft: 4, color: group.accent, fontWeight: 700, textDecoration: "none", borderBottom: `1px solid ${group.accent}55` }}
-                            onClick={e => e.stopPropagation()}
-                          >
-                            {item.urlLabel} ↗
-                          </a>
-                        )}
-                        {item.tel && (
-                          <a href={`tel:${item.tel}`}
-                            style={{ marginLeft: 4, color: "#2a5a3e", fontWeight: 700, textDecoration: "none", background: "rgba(42,90,62,.08)", padding: "1px 6px", borderRadius: 5 }}
-                            onClick={e => e.stopPropagation()}
-                          >
-                            📞 {item.telLabel}
-                          </a>
-                        )}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>
@@ -967,66 +987,57 @@ function WarningsCard({ groups }) {
 
 function BikeRentalCard({ rental }) {
   const [open, setOpen] = useState(false);
-  const ac = "#8b6f47";
   return (
     <Anim>
-      <div
-        style={{
-          background: open ? "linear-gradient(135deg,#f5ede0,#fdf8f2)" : "linear-gradient(135deg,rgba(139,111,71,.07),#faf8f5)",
-          border: `1px solid rgba(139,111,71,.2)`,
-          borderRadius: 12,
-          marginBottom: 10,
-          overflow: "hidden",
-          transition: "all .35s cubic-bezier(.4,0,.2,1)",
-          boxShadow: open ? `0 4px 16px rgba(139,111,71,.12)` : "0 1px 4px rgba(0,0,0,.03)",
-        }}
-      >
+      <div style={{
+        border: `1px solid ${open ? T.yelBd : T.border}`,
+        background: T.card,
+        marginBottom: 8,
+        overflow: "hidden",
+        transition: "border-color .2s",
+      }}>
         <button
           onClick={() => setOpen(!open)}
-          style={{ width: "100%", background: "none", border: "none", padding: "10px 12px", cursor: "pointer", display: "flex", alignItems: "center", gap: 10, fontFamily: "inherit", textAlign: "left" }}
+          style={{ width: "100%", background: "none", border: "none", padding: "12px 14px", cursor: "pointer", display: "flex", alignItems: "center", gap: 12, fontFamily: T.sans, textAlign: "left" }}
         >
-          <span style={{ fontSize: 20 }}>🏍</span>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 10, color: "#8a7f72", fontWeight: 500 }}>バイクレンタル</div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#1a3a2a" }}>{rental.shop}</div>
+          <div style={{ width: 32, height: 32, background: T.yelBg, border: `1px solid ${T.yelBd}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <span style={{ fontSize: 14 }}>🏍</span>
           </div>
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 3 }}>
-            <span style={{ fontSize: 10, color: ac, fontWeight: 700, background: `rgba(139,111,71,.12)`, padding: "2px 7px", borderRadius: 6 }}>
+          <div style={{ flex: 1 }}>
+            <Mono color={T.yel} size={9} style={{ display: "block", letterSpacing: "0.1em", marginBottom: 3 }}>▸ MOTO_RENTAL</Mono>
+            <div style={{ fontSize: 13, fontWeight: 600, color: T.text, fontFamily: T.sans }}>{rental.shop}</div>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}>
+            <span style={{ fontFamily: T.mono, fontSize: 9, color: T.yel, border: `1px solid ${T.yelBd}`, padding: "2px 6px" }}>
               {rental.start}〜{rental.end}
             </span>
-            <span style={{ fontSize: 14, color: ac, display: "inline-block", transition: "transform .3s", transform: open ? "rotate(180deg)" : "none", lineHeight: 1 }}>▾</span>
+            <span style={{ fontSize: 10, color: T.text3, display: "inline-block", transition: "transform .3s", transform: open ? "rotate(180deg)" : "none" }}>▾</span>
           </div>
         </button>
-        <div
-          style={{
-            maxHeight: open ? 800 : 0,
-            overflow: "hidden",
-            opacity: open ? 1 : 0,
-            transitionProperty: "max-height, opacity",
-            transitionDuration: open ? ".45s, .3s" : ".3s, .15s",
-            transitionTimingFunction: "cubic-bezier(.4,0,.2,1)",
-          }}
-        >
-          <div style={{ padding: "0 12px 12px", borderTop: `1px solid rgba(139,111,71,.1)` }}>
-            <div style={{ marginTop: 10 }}>
-              <div style={{ fontSize: 10, color: "#8a7f72", marginBottom: 6 }}>🏍 ライダー配車</div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-                {rental.bikes.map((b, i) => (
-                  <div key={i} style={{ background: "rgba(255,255,255,.8)", borderRadius: 8, padding: "8px 12px", border: `1px solid rgba(139,111,71,.1)`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <span style={{ fontSize: 11, fontWeight: 700, color: ac, background: `rgba(139,111,71,.1)`, padding: "1px 7px", borderRadius: 6 }}>{b.rider}</span>
-                    <span style={{ fontSize: 13, fontWeight: 800, color: "#1a3a2a" }}>{b.model}</span>
-                  </div>
-                ))}
-              </div>
+        <div style={{
+          maxHeight: open ? 800 : 0, overflow: "hidden",
+          opacity: open ? 1 : 0,
+          transitionProperty: "max-height, opacity",
+          transitionDuration: open ? ".45s, .3s" : ".3s, .15s",
+        }}>
+          <div style={{ borderTop: `1px solid ${T.border}`, padding: "12px 14px" }}>
+            <Mono color={T.text3} size={9} style={{ display: "block", letterSpacing: "0.06em", marginBottom: 6 }}>RIDER_ASSIGNMENT</Mono>
+            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+              {rental.bikes.map((b, i) => (
+                <div key={i} style={{ background: T.bg, border: `1px solid ${T.border}`, padding: "8px 12px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ fontFamily: T.mono, fontSize: 9, color: T.yel, border: `1px solid ${T.yelBd}`, padding: "1px 6px" }}>{b.rider}</span>
+                  <span style={{ fontFamily: T.mono, fontSize: 11, fontWeight: 700, color: T.text }}>{b.model}</span>
+                </div>
+              ))}
             </div>
-            <div style={{ marginTop: 8, background: "rgba(255,255,255,.8)", borderRadius: 8, padding: "8px 10px", border: `1px solid rgba(139,111,71,.1)` }}>
-              <div style={{ fontSize: 10, color: "#8a7f72", marginBottom: 2 }}>⛑ ヘルメット</div>
-              <div style={{ fontSize: 12, fontWeight: 600, color: "#1a3a2a" }}>{rental.helmet}</div>
+            <div style={{ marginTop: 6, background: T.bg, border: `1px solid ${T.border}`, padding: "8px 10px" }}>
+              <Mono color={T.text3} size={9} style={{ display: "block", letterSpacing: "0.06em", marginBottom: 3 }}>HELMET</Mono>
+              <div style={{ fontSize: 11, color: T.text2, fontFamily: T.sans }}>{rental.helmet}</div>
             </div>
-            <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 5 }}>
+            <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 4 }}>
               {rental.notes.map((note, i) => (
-                <div key={i} style={{ fontSize: 12, color: "#5c5347", lineHeight: 1.7, background: "rgba(212,85,58,.04)", border: "1px solid rgba(212,85,58,.12)", borderRadius: 8, padding: "7px 10px" }}>
-                  ⚠ {note}
+                <div key={i} style={{ fontSize: 11, color: T.text2, lineHeight: 1.7, background: T.redBg, border: `1px solid ${T.redBd}`, padding: "7px 10px", fontFamily: T.sans }}>
+                  <Mono color={T.red} size={9}>! </Mono>{note}
                 </div>
               ))}
             </div>
@@ -1041,82 +1052,70 @@ function FlightsCard({ flights }) {
   const [open, setOpen] = useState(false);
   const summary = [
     flights.outbound && flights.outbound.flight,
-    flights.returns  && `復路${flights.returns.length}便`,
-  ].filter(Boolean).join(" ／ ");
+    flights.returns  && `RET×${flights.returns.length}`,
+  ].filter(Boolean).join(" / ");
   return (
     <Anim>
-      <div
-        style={{
-          background: open ? "linear-gradient(135deg,#e8f0fa,#f5f8ff)" : "linear-gradient(135deg,rgba(91,164,201,.07),#faf8f5)",
-          border: "1px solid rgba(91,164,201,.2)",
-          borderRadius: 12,
-          marginBottom: 10,
-          overflow: "hidden",
-          transition: "all .35s cubic-bezier(.4,0,.2,1)",
-          boxShadow: open ? "0 4px 16px rgba(91,164,201,.12)" : "0 1px 4px rgba(0,0,0,.03)",
-        }}
-      >
+      <div style={{
+        border: `1px solid ${open ? T.bluBd : T.border}`,
+        background: T.card,
+        marginBottom: 8,
+        overflow: "hidden",
+        transition: "border-color .2s",
+      }}>
         <button
           onClick={() => setOpen(!open)}
           style={{
-            width: "100%",
-            background: "none",
-            border: "none",
-            padding: "10px 12px",
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            gap: 10,
-            fontFamily: "inherit",
-            textAlign: "left",
+            width: "100%", background: "none", border: "none",
+            padding: "12px 14px", cursor: "pointer",
+            display: "flex", alignItems: "center", gap: 12,
+            fontFamily: T.sans, textAlign: "left",
           }}
         >
-          <span style={{ fontSize: 20 }}>✈️</span>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 10, color: "#8a7f72", fontWeight: 500 }}>フライト情報</div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#1a3a2a" }}>{summary}</div>
+          <div style={{ width: 32, height: 32, background: T.bluBg, border: `1px solid ${T.bluBd}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <span style={{ fontSize: 14 }}>✈</span>
           </div>
-          <span style={{ fontSize: 14, color: "#5ba4c9", display: "inline-block", transition: "transform .3s", transform: open ? "rotate(180deg)" : "none", lineHeight: 1 }}>▾</span>
+          <div style={{ flex: 1 }}>
+            <Mono color={T.blu} size={9} style={{ display: "block", letterSpacing: "0.1em", marginBottom: 3 }}>▸ FLIGHT_INFO</Mono>
+            <span style={{ fontFamily: T.mono, fontSize: 12, fontWeight: 700, color: T.text }}>{summary}</span>
+          </div>
+          <span style={{ fontSize: 10, color: T.text3, display: "inline-block", transition: "transform .3s", transform: open ? "rotate(180deg)" : "none" }}>▾</span>
         </button>
-        <div
-          style={{
-            maxHeight: open ? 1000 : 0,
-            overflow: "hidden",
-            opacity: open ? 1 : 0,
-            transitionProperty: "max-height, opacity",
-            transitionDuration: open ? ".45s, .3s" : ".3s, .15s",
-            transitionTimingFunction: "cubic-bezier(.4,0,.2,1)",
-          }}
-        >
-          <div style={{ padding: "0 12px 12px", borderTop: "1px solid rgba(91,164,201,.1)" }}>
+        <div style={{
+          maxHeight: open ? 1000 : 0, overflow: "hidden",
+          opacity: open ? 1 : 0,
+          transitionProperty: "max-height, opacity",
+          transitionDuration: open ? ".45s, .3s" : ".3s, .15s",
+        }}>
+          <div style={{ borderTop: `1px solid ${T.border}`, padding: "12px 14px" }}>
             {flights.outbound && (
-              <div style={{ marginTop: 10 }}>
-                <div style={{ fontSize: 10, fontWeight: 700, color: "#5ba4c9", letterSpacing: 1, marginBottom: 6 }}>
-                  ▶ 往路（{flights.outbound.date} · {flights.outbound.note}）
-                </div>
-                <div style={{ background: "rgba(255,255,255,.8)", borderRadius: 8, padding: "10px 12px", border: "1px solid rgba(91,164,201,.12)" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <span style={{ fontSize: 13, fontWeight: 800, color: "#1a3a2a" }}>{flights.outbound.flight}</span>
-                    <span style={{ fontSize: 12, color: "#5ba4c9", fontWeight: 700 }}>{flights.outbound.departure}</span>
+              <div style={{ marginBottom: 12 }}>
+                <Mono color={T.blu} size={9} style={{ display: "block", letterSpacing: "0.08em", marginBottom: 6 }}>
+                  ▶ OUTBOUND · {flights.outbound.date} · {flights.outbound.note}
+                </Mono>
+                <div style={{ background: T.bg, border: `1px solid ${T.bluBd}`, padding: "10px 12px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <span style={{ fontFamily: T.mono, fontSize: 14, fontWeight: 700, color: T.yel }}>{flights.outbound.flight}</span>
+                    <span style={{ fontFamily: T.mono, fontSize: 11, color: T.blu }}>{flights.outbound.departure}</span>
                   </div>
-                  <div style={{ fontSize: 12, color: "#5c5347", marginTop: 4 }}>{flights.outbound.route}</div>
+                  <div style={{ fontFamily: T.mono, fontSize: 10, color: T.text2, marginTop: 4 }}>{flights.outbound.route}</div>
                 </div>
               </div>
             )}
             {flights.returns && (
-              <div style={{ marginTop: 10 }}>
-                <div style={{ fontSize: 10, fontWeight: 700, color: "#5ba4c9", letterSpacing: 1, marginBottom: 6 }}>
-                  ◀ 復路（4/30(木) · 新千歳解散）
-                </div>
+              <div>
+                <Mono color={T.blu} size={9} style={{ display: "block", letterSpacing: "0.08em", marginBottom: 6 }}>
+                  ◀ RETURN · 4/30(木) · 新千歳解散
+                </Mono>
                 <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                   {flights.returns.map((r, i) => (
-                    <div key={i} style={{ background: "rgba(255,255,255,.8)", borderRadius: 8, padding: "10px 12px", border: "1px solid rgba(91,164,201,.12)" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-                        <span style={{ fontSize: 11, fontWeight: 700, color: "#5ba4c9", background: "rgba(91,164,201,.12)", padding: "1px 7px", borderRadius: 6 }}>{r.name}</span>
-                        <span style={{ fontSize: 13, fontWeight: 800, color: "#1a3a2a" }}>{r.flight}</span>
-                        <span style={{ fontSize: 12, color: "#5ba4c9", fontWeight: 700 }}>{r.departure}</span>
+                    <div key={i} style={{ background: T.bg, border: `1px solid ${T.bluBd}`, padding: "10px 12px" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                        <span style={{ fontFamily: T.mono, fontSize: 9, color: T.blu, border: `1px solid ${T.bluBd}`, padding: "1px 6px" }}>{r.name}</span>
+                        <span style={{ fontFamily: T.mono, fontSize: 13, fontWeight: 700, color: T.yel }}>{r.flight}</span>
+                        <span style={{ fontFamily: T.mono, fontSize: 11, color: T.blu }}>{r.departure}</span>
                       </div>
-                      <div style={{ fontSize: 12, color: "#5c5347", marginTop: 4 }}>{r.route}</div>
+                      <div style={{ fontFamily: T.mono, fontSize: 10, color: T.text2, marginTop: 4 }}>{r.route}</div>
                     </div>
                   ))}
                 </div>
@@ -1132,30 +1131,36 @@ function FlightsCard({ flights }) {
 function DayView({ day }) {
   const [showG, setShowG] = useState(false);
   return (
-    <div style={{ padding: "0 16px 24px" }}>
+    <div style={{ paddingBottom: 24 }}>
       {day.stay && (
         <Anim>
-          <div
-            style={{
-              background: "linear-gradient(135deg,#9b7ec810,#faf8f5)",
-              border: "1px solid rgba(155,126,200,.15)",
-              borderRadius: 10,
-              padding: "10px 12px",
-              marginBottom: 10,
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <span style={{ fontSize: 20 }}>{day.stayIcon}</span>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 10, color: "#8a7f72", fontWeight: 500 }}>この日の宿泊</div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: "#1a3a2a" }}>{day.stay}</div>
+          <div style={{
+            background: T.card,
+            border: `1px solid ${T.bluBd}`,
+            padding: "12px 14px",
+            marginBottom: 8,
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <div style={{ width: 32, height: 32, background: T.bluBg, border: `1px solid ${T.bluBd}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <span style={{ fontSize: 14 }}>🏨</span>
               </div>
+              <div style={{ flex: 1 }}>
+                <Mono color={T.blu} size={9} style={{ display: "block", letterSpacing: "0.1em", marginBottom: 3 }}>▸ QUARTERS</Mono>
+                <div style={{ fontSize: 13, fontWeight: 600, color: T.text, fontFamily: T.sans }}>{day.stay}</div>
+              </div>
+            </div>
+            <div style={{ marginTop: 8, display: "flex", gap: 6, flexWrap: "wrap" }}>
+              <span style={{ fontFamily: T.mono, fontSize: 9, color: T.blu, border: `1px solid ${T.bluBd}`, padding: "2px 6px" }}>[ RESERVE_COMPLETE ]</span>
               {day.stayPrice && (
-                <div style={{ fontSize: 11, color: "#9b7ec8", fontWeight: 700, textAlign: "right", flexShrink: 0 }}>{day.stayPrice}</div>
+                <span style={{ fontFamily: T.mono, fontSize: 9, color: T.yel, border: `1px solid ${T.yelBd}`, padding: "2px 6px" }}>
+                  {day.stayPrice.split("（")[0]}
+                </span>
               )}
             </div>
             {day.stayNote && (
-              <div style={{ fontSize: 11, color: "#5c5347", marginTop: 6, lineHeight: 1.6, paddingLeft: 30 }}>{day.stayNote}</div>
+              <div style={{ fontSize: 11, color: T.text2, marginTop: 8, lineHeight: 1.7, paddingTop: 8, borderTop: `1px solid ${T.border}`, fontFamily: T.sans }}>
+                {day.stayNote}
+              </div>
             )}
           </div>
         </Anim>
@@ -1167,55 +1172,61 @@ function DayView({ day }) {
 
       {day.highlight && (
         <Anim>
-          <div style={{ background: `linear-gradient(135deg,${day.color},${day.color}cc)`, borderRadius: 14, padding: "14px 16px", marginBottom: 14, color: "#fff" }}>
-            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, opacity: 0.7, marginBottom: 4 }}>HIGHLIGHT</div>
-            <div style={{ fontSize: 13, lineHeight: 1.7, opacity: 0.9 }}>{day.highlight}</div>
+          <div style={{
+            background: T.yelBg,
+            border: `1px solid ${T.yelBd}`,
+            borderLeft: `3px solid ${T.yel}`,
+            padding: "12px 14px",
+            marginBottom: 10,
+          }}>
+            <Mono color={T.yel} size={9} style={{ display: "block", letterSpacing: "0.1em", marginBottom: 6 }}>◆ MISSION_BRIEF</Mono>
+            <div style={{ fontSize: 12, lineHeight: 1.8, color: T.text, fontFamily: T.sans }}>{day.highlight}</div>
           </div>
         </Anim>
       )}
 
       {day.trek && (
         <Anim delay={0.05}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 6, marginBottom: 14 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 4, marginBottom: 10 }}>
             {[
-              ["距離", day.trek.distance],
-              ["時間", day.trek.time],
-              ["難度", day.trek.level],
-              ["標高", day.trek.elevation],
+              ["DIST", day.trek.distance],
+              ["TIME", day.trek.time],
+              ["LEVEL", day.trek.level],
+              ["ELEV", day.trek.elevation],
             ].map(([l, v]) => (
-              <div key={l} style={{ background: "#fff", borderRadius: 10, padding: "8px 4px", textAlign: "center", border: "1px solid rgba(139,111,71,.1)" }}>
-                <div style={{ fontSize: 14, fontWeight: 800, color: "#1a3a2a", fontFamily: "'M PLUS Rounded 1c'" }}>{v}</div>
-                <div style={{ fontSize: 10, color: "#8a7f72", marginTop: 2 }}>{l}</div>
+              <div key={l} style={{ background: T.card, border: `1px solid ${T.border}`, padding: "8px 4px", textAlign: "center" }}>
+                <div style={{ fontFamily: T.mono, fontSize: 10, fontWeight: 700, color: T.yel, lineHeight: 1.3 }}>{v}</div>
+                <div style={{ fontFamily: T.mono, fontSize: 8, color: T.text3, marginTop: 3, letterSpacing: "0.05em" }}>{l}</div>
               </div>
             ))}
           </div>
         </Anim>
       )}
 
-      <Anim delay={0.08}>
-        <div style={{ borderRadius: 14, overflow: "hidden", border: "1px solid rgba(139,111,71,.1)", height: 170, marginBottom: 12, boxShadow: "0 2px 12px rgba(0,0,0,.05)" }}>
-          <iframe title="map" src={`https://maps.google.com/maps?q=${encodeURIComponent(day.mapQuery)}&z=7&output=embed&hl=ja`} style={{ width: "100%", height: "100%", border: "none" }} loading="lazy" />
+      <Anim delay={0.06}>
+        <div style={{ overflow: "hidden", border: `1px solid ${T.border}`, height: 160, marginBottom: 10 }}>
+          <iframe
+            title="map"
+            src={`https://maps.google.com/maps?q=${encodeURIComponent(day.mapQuery)}&z=7&output=embed&hl=ja`}
+            style={{ width: "100%", height: "100%", border: "none", filter: "invert(0.92) hue-rotate(180deg) saturate(0.7) brightness(0.85)" }}
+            loading="lazy"
+          />
         </div>
       </Anim>
 
-      <div style={{ position: "relative", paddingLeft: 20 }}>
-        <div style={{ position: "absolute", left: 5, top: 8, bottom: 0, width: 2, background: "linear-gradient(to bottom,#2a5a3e44,transparent)", borderRadius: 1 }} />
+      <div style={{ position: "relative", paddingLeft: 16 }}>
+        <div style={{ position: "absolute", left: 2, top: 0, bottom: 0, width: 1, background: `linear-gradient(to bottom, ${T.yel}55, transparent)` }} />
         {day.events.map((ev, i) => (
-          <div key={i} style={{ position: "relative", marginBottom: 4 }}>
-            <div
-              style={{
-                position: "absolute",
-                left: -20,
-                top: 14,
-                width: ev.important ? 12 : 8,
-                height: ev.important ? 12 : 8,
-                borderRadius: "50%",
-                background: ev.important ? "#d4553a" : "#2a5a3e",
-                border: "2px solid #faf8f5",
-                boxShadow: ev.important ? "0 0 0 2px #d4553a,0 0 8px rgba(212,85,58,.3)" : "0 0 0 2px #2a5a3e",
-                transition: "all .3s",
-              }}
-            />
+          <div key={i} style={{ position: "relative", marginBottom: 2 }}>
+            <div style={{
+              position: "absolute",
+              left: -16,
+              top: 16,
+              width: ev.important ? 7 : 5,
+              height: ev.important ? 7 : 5,
+              background: ev.important ? T.red : T.yel,
+              transform: "rotate(45deg)",
+            }} />
             <EventCard ev={ev} idx={i} />
           </div>
         ))}
@@ -1225,11 +1236,10 @@ function DayView({ day }) {
 
       {!day.warningGroups && day.warnings?.length > 0 && (
         <Anim>
-          <div style={{ background: "rgba(212,85,58,.04)", border: "1px solid rgba(212,85,58,.12)", borderRadius: 10, padding: "10px 12px", marginTop: 12 }}>
+          <div style={{ background: T.redBg, border: `1px solid ${T.redBd}`, padding: "10px 12px", marginTop: 10 }}>
+            <Mono color={T.red} size={9} style={{ display: "block", letterSpacing: "0.1em", marginBottom: 6 }}>! ALERTS</Mono>
             {day.warnings.map((w, i) => (
-              <div key={i} style={{ fontSize: 12, color: "#5c5347", lineHeight: 1.7, paddingBottom: 2 }}>
-                {w}
-              </div>
+              <div key={i} style={{ fontSize: 11, color: T.text2, lineHeight: 1.7, fontFamily: T.sans }}>▸ {w}</div>
             ))}
           </div>
         </Anim>
@@ -1237,47 +1247,34 @@ function DayView({ day }) {
 
       {day.gourmet?.length > 0 && (
         <Anim>
-          <div style={{ marginTop: 14 }}>
+          <div style={{ marginTop: 12 }}>
             <button
               onClick={() => setShowG(!showG)}
               style={{
-                width: "100%",
-                background: "none",
-                border: "1px dashed rgba(212,85,58,.25)",
-                borderRadius: 10,
-                padding: "10px 12px",
-                cursor: "pointer",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                color: "#d4553a",
-                fontWeight: 700,
-                fontSize: 13,
-                fontFamily: "inherit",
+                width: "100%", background: T.card, border: `1px solid ${T.yelBd}`,
+                padding: "10px 14px", cursor: "pointer",
+                display: "flex", justifyContent: "space-between", alignItems: "center",
+                fontFamily: T.mono, color: T.yel, fontSize: 10, letterSpacing: "0.08em",
               }}
             >
-              <span>🍽 グルメおすすめ {day.gourmet.length}件</span>
-              <span style={{ transform: showG ? "rotate(180deg)" : "none", transition: ".3s" }}>▼</span>
+              <span>▸ PROVISIONS_DB ({day.gourmet.length})</span>
+              <span style={{ transform: showG ? "rotate(180deg)" : "none", transition: ".3s" }}>▾</span>
             </button>
-            <div style={{ maxHeight: showG ? 2000 : 0, overflow: "hidden", transition: "max-height .5s cubic-bezier(.4,0,.2,1)" }}>
+            <div style={{ maxHeight: showG ? 2000 : 0, overflow: "hidden", transition: "max-height .5s" }}>
               {day.gourmet.map((g, i) => (
-                <div key={i} style={{ background: "linear-gradient(135deg,#fff9f5,#fff)", border: "1px solid rgba(212,85,58,.1)", borderRadius: 10, padding: "8px 12px", marginTop: 4 }}>
+                <div key={i} style={{ background: T.card, border: `1px solid ${T.border}`, borderTop: "none", padding: "10px 14px" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <span style={{ fontWeight: 700, fontSize: 13, color: "#d4553a" }}>{g.name}</span>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: T.yel, fontFamily: T.sans }}>{g.name}</span>
                     {g.tel && (
-                      <a href={`tel:${g.tel}`} style={{ fontSize: 11, color: "#2a5a3e", textDecoration: "none" }}>
-                        📞
+                      <a href={`tel:${g.tel}`} style={{ fontFamily: T.mono, fontSize: 9, color: T.blu, textDecoration: "none", border: `1px solid ${T.bluBd}`, padding: "2px 6px" }}>
+                        CALL
                       </a>
                     )}
                   </div>
-                  <p style={{ fontSize: 12, color: "#5c5347", marginTop: 2, lineHeight: 1.6 }}>{g.note}</p>
+                  <p style={{ fontSize: 11, color: T.text2, marginTop: 4, lineHeight: 1.6, fontFamily: T.sans }}>{g.note}</p>
                   {g.tags && (
-                    <div style={{ display: "flex", gap: 4, marginTop: 3, flexWrap: "wrap" }}>
-                      {g.tags.map((t) => (
-                        <span key={t} style={{ fontSize: 9, color: "#d4553a", background: "rgba(212,85,58,.06)", padding: "1px 6px", borderRadius: 6 }}>
-                          {t}
-                        </span>
-                      ))}
+                    <div style={{ display: "flex", gap: 4, marginTop: 4, flexWrap: "wrap" }}>
+                      {g.tags.map(t => <Badge key={t} color={T.yel}>{t}</Badge>)}
                     </div>
                   )}
                 </div>
@@ -1312,20 +1309,24 @@ function ChecklistView() {
   return (
     <div style={{ padding: "0 16px 24px" }}>
       <Anim>
-        <div style={{ background: "#fff", borderRadius: 12, padding: "10px 14px", marginBottom: 14, display: "flex", alignItems: "center", gap: 12, border: "1px solid rgba(139,111,71,.1)" }}>
-          <span style={{ fontSize: 14, color: "#2a5a3e", fontWeight: 800, fontFamily: "'M PLUS Rounded 1c'", minWidth: 42 }}>
-            {done}/{total}
+        <div style={{ background: T.card, border: `1px solid ${T.border}`, padding: "12px 14px", marginBottom: 14, display: "flex", alignItems: "center", gap: 12 }}>
+          <span style={{ fontFamily: T.mono, fontSize: 13, color: done === total ? T.yel : T.blu, fontWeight: 700, minWidth: 48 }}>
+            {String(done).padStart(2,"0")}/{String(total).padStart(2,"0")}
           </span>
-          <div style={{ flex: 1, height: 6, background: "#ede6d8", borderRadius: 3, overflow: "hidden" }}>
-            <div style={{ width: `${(done / total) * 100}%`, height: "100%", background: "linear-gradient(90deg,#2a5a3e,#5ba4c9)", borderRadius: 3, transition: "width .4s" }} />
+          <div style={{ flex: 1, height: 2, background: T.border, position: "relative" }}>
+            <div style={{ position: "absolute", left: 0, top: 0, height: "100%", width: `${(done / total) * 100}%`, background: done === total ? T.yel : T.blu, transition: "width .4s" }} />
           </div>
-          {done === total && <span style={{ fontSize: 14 }}>🎉</span>}
+          {done === total && (
+            <span style={{ fontFamily: T.mono, fontSize: 9, color: T.yel, border: `1px solid ${T.yelBd}`, padding: "2px 6px" }}>[ CARGO_READY ]</span>
+          )}
         </div>
       </Anim>
       {CHECKLIST.map((cat, ci) => (
         <Anim key={ci} delay={ci * 0.04}>
-          <div style={{ marginBottom: 18 }}>
-            <div style={{ fontSize: 14, fontWeight: 700, color: "#1a3a2a", marginBottom: 8, paddingLeft: 2 }}>{cat.cat}</div>
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ fontFamily: T.mono, fontSize: 9, color: T.text2, letterSpacing: "0.08em", marginBottom: 6, paddingBottom: 4, borderBottom: `1px solid ${T.border}` }}>
+              ▸ {cat.cat.replace(/^\S+\s/, "").toUpperCase()}
+            </div>
             {cat.items.map((item, ii) => {
               const k = `${ci}-${ii}`;
               const d = ck[k];
@@ -1334,40 +1335,28 @@ function ChecklistView() {
                   key={k}
                   onClick={() => toggle(k)}
                   style={{
-                    background: d ? "#f5f0e8" : "#fff",
-                    opacity: d ? 0.45 : 1,
-                    border: "1px solid rgba(139,111,71,.08)",
-                    borderRadius: 10,
+                    background: d ? T.bluBg : T.card,
+                    opacity: d ? 0.5 : 1,
+                    border: `1px solid ${d ? T.bluBd : T.border}`,
                     padding: "10px 12px",
-                    marginBottom: 5,
-                    display: "flex",
-                    gap: 10,
-                    alignItems: "flex-start",
+                    marginBottom: 4,
+                    display: "flex", gap: 10, alignItems: "flex-start",
                     cursor: "pointer",
-                    transition: "all .3s cubic-bezier(.4,0,.2,1)",
-                    transform: d ? "scale(.98)" : "scale(1)",
+                    transition: "all .2s",
                   }}
                 >
-                  <div
-                    style={{
-                      width: 22,
-                      height: 22,
-                      borderRadius: 6,
-                      border: d ? "2px solid #2a5a3e" : "2px solid #ccc",
-                      background: d ? "#2a5a3e" : "transparent",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      flexShrink: 0,
-                      transition: ".3s",
-                      marginTop: 1,
-                    }}
-                  >
-                    {d && <span style={{ color: "#fff", fontSize: 12, fontWeight: 700 }}>✓</span>}
+                  <div style={{
+                    width: 18, height: 18,
+                    border: `1px solid ${d ? T.blu : T.text3}`,
+                    background: d ? T.blu : "transparent",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    flexShrink: 0, transition: ".2s", marginTop: 1,
+                  }}>
+                    {d && <span style={{ color: T.bg, fontSize: 10, fontWeight: 700, fontFamily: T.mono }}>✓</span>}
                   </div>
                   <div>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: "#1a3a2a" }}>{item.name}</div>
-                    <div style={{ fontSize: 11, color: "#8a7f72", marginTop: 2, lineHeight: 1.6 }}>{item.sub}</div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: T.text, fontFamily: T.sans }}>{item.name}</div>
+                    <div style={{ fontSize: 11, color: T.text2, marginTop: 2, lineHeight: 1.6, fontFamily: T.sans }}>{item.sub}</div>
                   </div>
                 </div>
               );
@@ -1384,54 +1373,64 @@ export default function App() {
   const [tab, setTab] = useState("day");
   const [ad, setAd] = useState(0);
   return (
-    <div style={{ fontFamily: "'Zen Maru Gothic',sans-serif", background: "#faf8f5", minHeight: "100vh", maxWidth: 480, margin: "0 auto" }}>
+    <div style={{ fontFamily: T.sans, background: T.bg, minHeight: "100vh", maxWidth: 480, margin: "0 auto", color: T.text }}>
       <link
-        href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700;900&family=Kaisei+Decol:wght@400;700&family=M+PLUS+Rounded+1c:wght@300;400;500;700;800&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap"
         rel="stylesheet"
       />
-      <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}*{-webkit-tap-highlight-color:rgba(26,58,42,.08)}a,button{touch-action:manipulation}`}</style>
+      <style>{`
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+        *{-webkit-tap-highlight-color:rgba(96,165,250,0.08)}
+        a,button{touch-action:manipulation}
+        ::-webkit-scrollbar{width:2px;height:2px}
+        ::-webkit-scrollbar-track{background:transparent}
+        ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.08)}
+      `}</style>
 
-      <div style={{ background: "linear-gradient(175deg,#0f2419 0%,#1a3a2a 40%,#2a5a3e 70%,#3d7a5a 100%)", padding: "52px 24px 36px", textAlign: "center", position: "relative", overflow: "hidden" }}>
-        <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 40, background: "#faf8f5", clipPath: "polygon(0 60%,30% 30%,55% 50%,80% 20%,100% 45%,100% 100%,0 100%)" }} />
-        <div style={{ fontSize: 10, letterSpacing: 4, color: "#a8d8ea", marginBottom: 14, animation: "slideUp .8s .2s both" }}>2026.04.24 — 04.30</div>
-        <div style={{ fontFamily: "'Kaisei Decol',serif", fontSize: 44, fontWeight: 700, color: "#fff", lineHeight: 1.1, textShadow: "0 4px 24px rgba(0,0,0,.3)", animation: "slideUp .8s .4s both" }}>北の大地</div>
-        <div style={{ fontFamily: "'Kaisei Decol',serif", fontSize: 14, color: "#a8d8ea", marginTop: 6, animation: "slideUp .8s .6s both" }}>歩く・走る・食う — 6泊7日</div>
-        <div style={{ display: "inline-grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 22, animation: "slideUp .8s .8s both" }}>
-          {[
-            ["7", "DAYS"],
-            ["1,540km", "DRIVE"],
-            ["12.4km", "TREK"],
-            ["∞", "FOOD"],
-          ].map(([n, l]) => (
-            <div key={l} style={{ background: "rgba(255,255,255,.08)", backdropFilter: "blur(10px)", border: "1px solid rgba(255,255,255,.12)", borderRadius: 12, padding: "8px 12px", minWidth: 68 }}>
-              <div style={{ fontFamily: "'M PLUS Rounded 1c'", fontSize: 16, fontWeight: 800, color: "#fff" }}>{n}</div>
-              <div style={{ fontSize: 8, color: "#a8d8ea", letterSpacing: 2, marginTop: 2 }}>{l}</div>
-            </div>
-          ))}
+      {/* ─── HEADER ─── */}
+      <div style={{ background: "#050507", borderBottom: `1px solid ${T.border}`, padding: "40px 20px 28px", position: "relative", overflow: "hidden" }}>
+        <div style={{ position: "absolute", top: 16, left: 16, width: 18, height: 18, borderTop: `1px solid ${T.yel}55`, borderLeft: `1px solid ${T.yel}55` }} />
+        <div style={{ position: "absolute", top: 16, right: 16, width: 18, height: 18, borderTop: `1px solid ${T.yel}55`, borderRight: `1px solid ${T.yel}55` }} />
+        <div style={{ position: "absolute", bottom: 28, left: 16, width: 18, height: 18, borderBottom: `1px solid ${T.yel}55`, borderLeft: `1px solid ${T.yel}55` }} />
+        <div style={{ position: "absolute", bottom: 28, right: 16, width: 18, height: 18, borderBottom: `1px solid ${T.yel}55`, borderRight: `1px solid ${T.yel}55` }} />
+        <div style={{ textAlign: "center" }}>
+          <Mono color={T.text2} size={9} style={{ display: "block", letterSpacing: "0.18em", marginBottom: 18 }}>
+            PORTER_TERMINAL · v2.026 · [ ACTIVE ]
+          </Mono>
+          <div style={{ fontFamily: T.mono, fontSize: 34, fontWeight: 700, color: T.yel, letterSpacing: "0.02em", lineHeight: 1 }}>
+            北の大地
+          </div>
+          <Mono color={T.text2} size={9} style={{ display: "block", letterSpacing: "0.22em", marginTop: 6 }}>HOKKAIDO EXPEDITION</Mono>
+          <div style={{ height: 1, background: T.border, margin: "16px 0" }} />
+          <Mono color={T.text2} size={9} style={{ display: "block", letterSpacing: "0.14em", marginBottom: 16 }}>2026.04.24 — 04.30</Mono>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 6 }}>
+            {[["07","DAYS"],["1540km","DRIVE"],["12.4km","TREK"],["∞","FOOD"]].map(([n, l]) => (
+              <div key={l} style={{ background: "rgba(255,255,255,0.03)", border: `1px solid ${T.border}`, padding: "8px 4px", textAlign: "center" }}>
+                <div style={{ fontFamily: T.mono, fontSize: 13, fontWeight: 700, color: T.text }}>{n}</div>
+                <div style={{ fontFamily: T.mono, fontSize: 7, color: T.text3, letterSpacing: "0.1em", marginTop: 2 }}>{l}</div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
-      <div style={{ display: "flex", background: "#fff", borderBottom: "1px solid rgba(139,111,71,.1)", position: "sticky", top: 0, zIndex: 100 }}>
+      {/* ─── TAB BAR ─── */}
+      <div style={{ display: "flex", background: T.card, borderBottom: `1px solid ${T.border}`, position: "sticky", top: 0, zIndex: 100 }}>
         {[
-          ["day", "📋 行程"],
-          ["check", "✅ 持ち物"],
-          ["tips", "⚠ 注意"],
+          ["day",   "ITINERARY"],
+          ["check", "CARGO"],
+          ["tips",  "ALERTS"],
         ].map(([id, lb]) => (
           <button
             key={id}
             onClick={() => setTab(id)}
             style={{
-              flex: 1,
-              padding: "12px 0",
-              border: "none",
-              background: "none",
-              fontFamily: "inherit",
-              fontSize: 12,
-              fontWeight: tab === id ? 700 : 500,
-              color: tab === id ? "#1a3a2a" : "#8a7f72",
-              borderBottom: tab === id ? "2.5px solid #1a3a2a" : "2.5px solid transparent",
-              cursor: "pointer",
-              transition: ".2s",
+              flex: 1, padding: "11px 0",
+              border: "none", background: "none",
+              fontFamily: T.mono, fontSize: 9, letterSpacing: "0.12em", fontWeight: 700,
+              color: tab === id ? T.yel : T.text3,
+              borderBottom: tab === id ? `2px solid ${T.yel}` : "2px solid transparent",
+              cursor: "pointer", transition: ".2s",
             }}
           >
             {lb}
@@ -1439,31 +1438,26 @@ export default function App() {
         ))}
       </div>
 
+      {/* ─── ITINERARY TAB ─── */}
       {tab === "day" && (
         <>
-          <div style={{ display: "flex", gap: 6, padding: "12px 16px", overflowX: "auto", WebkitOverflowScrolling: "touch", position: "sticky", top: 44, zIndex: 99, background: "rgba(250,248,245,.95)", backdropFilter: "blur(12px)" }}>
+          <div style={{ display: "flex", gap: 4, padding: "10px 16px", overflowX: "auto", WebkitOverflowScrolling: "touch", position: "sticky", top: 40, zIndex: 99, background: T.bg, borderBottom: `1px solid ${T.border}` }}>
             {DAYS.map((d, i) => (
               <button
                 key={d.id}
                 onClick={() => setAd(i)}
                 style={{
                   flexShrink: 0,
-                  border: ad === i ? "none" : "1px solid rgba(139,111,71,.15)",
-                  background: ad === i ? d.color : "transparent",
-                  color: ad === i ? "#fff" : "#5c5347",
-                  borderRadius: 20,
-                  padding: "6px 14px",
-                  fontFamily: "inherit",
-                  fontSize: 12,
-                  fontWeight: 700,
-                  cursor: "pointer",
-                  transition: "all .3s cubic-bezier(.4,0,.2,1)",
-                  whiteSpace: "nowrap",
-                  transform: ad === i ? "scale(1.05)" : "scale(1)",
+                  border: `1px solid ${ad === i ? T.yel : T.border}`,
+                  background: ad === i ? T.yelBg : "transparent",
+                  color: ad === i ? T.yel : T.text3,
+                  padding: "5px 12px",
+                  fontFamily: T.mono, fontSize: 10, fontWeight: 700,
+                  cursor: "pointer", transition: "all .2s",
+                  whiteSpace: "nowrap", letterSpacing: "0.05em",
                 }}
               >
-                D{d.id}
-                {[3, 5, 6].includes(d.id) ? " ★" : ""}
+                D{d.id}{[3,5,6].includes(d.id) ? "★" : ""}
               </button>
             ))}
           </div>
@@ -1471,73 +1465,80 @@ export default function App() {
             const d = DAYS[ad];
             return (
               <div key={d.id}>
-                <div style={{ padding: "16px 16px 12px", display: "flex", alignItems: "center", gap: 14 }}>
-                  <div
-                    style={{
-                      width: 52,
-                      height: 52,
-                      borderRadius: "50%",
-                      background: `linear-gradient(135deg,${d.color},${d.color}88)`,
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      color: "#fff",
-                      flexShrink: 0,
-                      transition: "all .4s",
-                      boxShadow: `0 4px 16px ${d.color}44`,
-                    }}
-                  >
-                    <span style={{ fontFamily: "'M PLUS Rounded 1c'", fontSize: 20, fontWeight: 800, lineHeight: 1 }}>{d.id}</span>
-                    <span style={{ fontSize: 8, letterSpacing: 1, opacity: 0.8 }}>DAY</span>
+                <div style={{ padding: "14px 16px 12px", borderBottom: `1px solid ${T.border}`, display: "flex", alignItems: "center", gap: 14 }}>
+                  <div style={{
+                    width: 44, height: 44,
+                    border: `1px solid ${T.yelBd}`,
+                    background: T.yelBg,
+                    display: "flex", flexDirection: "column",
+                    alignItems: "center", justifyContent: "center",
+                    flexShrink: 0,
+                  }}>
+                    <span style={{ fontFamily: T.mono, fontSize: 18, fontWeight: 700, color: T.yel, lineHeight: 1 }}>{String(d.id).padStart(2,"0")}</span>
+                    <span style={{ fontFamily: T.mono, fontSize: 7, color: T.text3, letterSpacing: "0.1em" }}>DAY</span>
                   </div>
                   <div>
-                    <div style={{ fontFamily: "'Kaisei Decol',serif", fontSize: 18, fontWeight: 700, color: "#1a3a2a", lineHeight: 1.3 }}>{d.title}</div>
-                    <div style={{ fontSize: 12, color: "#8a7f72" }}>
-                      {d.date} · {d.subtitle}
-                      {d.km > 0 ? ` · ${d.km}km` : ""}
-                    </div>
+                    <div style={{ fontSize: 17, fontWeight: 700, color: T.text, fontFamily: T.sans, lineHeight: 1.3 }}>{d.title}</div>
+                    <Mono color={T.text2} size={10} style={{ display: "block", marginTop: 2 }}>
+                      {d.date}{d.km > 0 ? ` · ${d.km}km` : ""}
+                    </Mono>
+                    <Mono color={T.text3} size={9}>{d.subtitle}</Mono>
                   </div>
                 </div>
-                <DayView day={d} />
+                <div style={{ padding: "10px 16px 0" }}>
+                  <DayView day={d} />
+                </div>
               </div>
             );
           })()}
         </>
       )}
 
+      {/* ─── CARGO TAB ─── */}
       {tab === "check" && (
         <div style={{ paddingTop: 16 }}>
-          <div style={{ padding: "0 16px 4px", fontFamily: "'Kaisei Decol',serif", fontSize: 18, fontWeight: 700, color: "#1a3a2a" }}>持ち物チェックリスト</div>
-          <div style={{ padding: "0 16px 8px", fontSize: 12, color: "#8a7f72" }}>タップで準備完了にマーク</div>
+          <div style={{ padding: "0 16px 12px" }}>
+            <Mono color={T.text3} size={9} style={{ display: "block", letterSpacing: "0.12em", marginBottom: 4 }}>▸ CARGO_MANIFEST</Mono>
+            <div style={{ fontSize: 17, fontWeight: 700, color: T.text, fontFamily: T.sans }}>持ち物チェックリスト</div>
+            <Mono color={T.text3} size={9} style={{ display: "block", marginTop: 4 }}>TAP_TO_MARK_COMPLETE</Mono>
+          </div>
+          <div style={{ height: 1, background: T.border, marginBottom: 16 }} />
           <ChecklistView />
         </div>
       )}
 
+      {/* ─── ALERTS TAB ─── */}
       {tab === "tips" && (
         <div style={{ paddingTop: 16 }}>
-          <div style={{ padding: "0 16px 4px", fontFamily: "'Kaisei Decol',serif", fontSize: 18, fontWeight: 700, color: "#1a3a2a" }}>北海道ドライブの注意点</div>
-          <div style={{ padding: "0 16px 8px", fontSize: 12, color: "#8a7f72" }}>命に関わるので読んで</div>
+          <div style={{ padding: "0 16px 12px" }}>
+            <Mono color={T.red} size={9} style={{ display: "block", letterSpacing: "0.12em", marginBottom: 4 }}>! CRITICAL_ALERTS</Mono>
+            <div style={{ fontSize: 17, fontWeight: 700, color: T.text, fontFamily: T.sans }}>北海道ドライブの注意点</div>
+            <Mono color={T.red} size={9} style={{ display: "block", marginTop: 4 }}>READ_BEFORE_DEPARTURE</Mono>
+          </div>
+          <div style={{ height: 1, background: T.border, marginBottom: 8 }} />
           <div style={{ padding: "0 16px 24px" }}>
-            <div style={{ display: "grid", gap: 8 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
               {TIPS.map((t, i) => (
-                <Anim key={i} delay={i * 0.06}>
-                  <div style={{ background: "#fff", borderRadius: 12, padding: "12px 14px", border: "1px solid rgba(139,111,71,.08)" }}>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: "#1a3a2a" }}>
+                <Anim key={i} delay={i * 0.04}>
+                  <div style={{ background: T.card, border: `1px solid ${T.border}`, borderLeft: `2px solid ${T.red}`, padding: "12px 14px" }}>
+                    <div style={{ fontFamily: T.sans, fontSize: 13, fontWeight: 700, color: T.text, marginBottom: 4 }}>
                       {t.icon} {t.title}
                     </div>
-                    <div style={{ fontSize: 12, color: "#5c5347", marginTop: 4, lineHeight: 1.7 }}>{t.text}</div>
+                    <div style={{ fontSize: 12, color: T.text2, lineHeight: 1.7, fontFamily: T.sans }}>{t.text}</div>
                   </div>
                 </Anim>
               ))}
             </div>
             <Anim delay={0.3}>
-              <div style={{ background: "#fff", border: "2px solid rgba(212,85,58,.15)", borderRadius: 12, padding: "14px", marginTop: 14 }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: "#d4553a", marginBottom: 8 }}>📞 緊急連絡先</div>
+              <div style={{ background: T.card, border: `1px solid ${T.redBd}`, padding: "14px", marginTop: 10 }}>
+                <Mono color={T.red} size={9} style={{ display: "block", letterSpacing: "0.1em", marginBottom: 10 }}>! EMERGENCY_CONTACTS</Mono>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
                   {EMER.map((e) => (
-                    <a key={e.l} href={`tel:${e.v}`} style={{ fontSize: 13, color: "#1a3a2a", textDecoration: "none" }}>
-                      <strong>{e.l}:</strong> {e.v}
+                    <a key={e.l} href={`tel:${e.v}`} style={{ textDecoration: "none" }}>
+                      <div style={{ background: T.bg, border: `1px solid ${T.border}`, padding: "8px 10px" }}>
+                        <Mono color={T.text3} size={8} style={{ display: "block", marginBottom: 2 }}>{e.l}</Mono>
+                        <Mono color={T.red} size={13} style={{ fontWeight: 700 }}>{e.v}</Mono>
+                      </div>
                     </a>
                   ))}
                 </div>
@@ -1547,9 +1548,11 @@ export default function App() {
         </div>
       )}
 
-      <div style={{ textAlign: "center", padding: "32px 16px 28px", color: "#8a7f72", fontSize: 12 }}>
-        <div style={{ fontFamily: "'Kaisei Decol',serif", fontSize: 16, color: "#1a3a2a", marginBottom: 4 }}>良い旅を 🍻</div>
-        <div>札幌→稚内→礼文→北見→知床→釧路→帯広→新千歳</div>
+      {/* ─── FOOTER ─── */}
+      <div style={{ textAlign: "center", padding: "24px 16px", borderTop: `1px solid ${T.border}` }}>
+        <Mono color={T.text3} size={8} style={{ display: "block", letterSpacing: "0.15em", marginBottom: 6 }}>ROUTE_LOG</Mono>
+        <Mono color={T.text2} size={9}>CTS→WKJ→REB→KBQ→SHB→KUH→OBO→CTS</Mono>
+        <Mono color={T.text3} size={8} style={{ display: "block", marginTop: 6, letterSpacing: "0.1em" }}>[ TERMINAL_EOF ]</Mono>
       </div>
     </div>
   );
